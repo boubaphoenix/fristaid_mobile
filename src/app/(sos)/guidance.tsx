@@ -8,15 +8,16 @@ import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { generateSosInstructions, startSosSession, type SosAnswers, type SosInstructions, type SosRole } from '@/lib/sosApi';
 
-const BOOLEAN_ANSWER_KEYS = ['conscious', 'breathing_difficulty', 'abnormal_breathing', 'dangerous_environment'];
+const NON_ANSWER_PARAM_KEYS = new Set(['role', 'incident']);
 
+// Toutes les questions (écran 13) transmettent leur réponse en 'true' |
+// 'false' | 'unknown' via l'URL — on reconstitue les booléens ici, le
+// reste (ex. 'unknown') reste une chaîne, acceptée par le backend.
 function parseAnswersFromParams(params: Record<string, string | string[] | undefined>): SosAnswers {
   const answers: SosAnswers = {};
-  for (const key of BOOLEAN_ANSWER_KEYS) {
-    const value = params[key];
-    if (typeof value === 'string') {
-      answers[key] = value === 'true';
-    }
+  for (const [key, value] of Object.entries(params)) {
+    if (NON_ANSWER_PARAM_KEYS.has(key) || typeof value !== 'string') continue;
+    answers[key] = value === 'true' ? true : value === 'false' ? false : value;
   }
   return answers;
 }
@@ -131,7 +132,7 @@ export default function SosGuidanceScreen() {
 
       <PrimaryButton
         label={isLastStep ? 'Terminer' : "C'est fait"}
-        onPress={() => (isLastStep ? router.back() : setStepIndex((i) => i + 1))}
+        onPress={() => (isLastStep ? router.replace('/(tabs)') : setStepIndex((i) => i + 1))}
         stress
         variant="success"
         style={styles.spaced}

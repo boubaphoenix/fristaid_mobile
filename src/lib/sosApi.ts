@@ -20,8 +20,14 @@ type GenerateInstructionsResponse = {
   instructions: SosInstructions;
 };
 
+export type SosQuota = { used: number; limit: number; remaining: number; resets_at: string };
+
 export function startSosSession(token: string) {
   return apiFetch<{ started_at: string }>('/sos/start', { method: 'POST', token });
+}
+
+export function getSosQuota(token: string) {
+  return apiFetch<SosQuota>('/sos/quota', { token });
 }
 
 export function generateSosInstructions(
