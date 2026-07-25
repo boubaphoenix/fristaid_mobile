@@ -2,29 +2,31 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, typography } from '@/constants/theme';
 
-// Les 8 cours MVP (PRD §19). Rouge réservé aux 3 incidents vitaux
-// (hémorragie, arrêt cardiaque, noyade), bleu pour les autres.
+// Les 8 cours MVP (PRD §11.10 — identifiants techniques officiels,
+// partagés avec courses.category côté backend et incident_type des
+// sessions IA SOS). Rouge réservé aux 3 incidents vitaux (bleeding,
+// cardiac_arrest, drowning), bleu pour les autres.
 export type CourseType =
-  | 'accident_circulation'
-  | 'hemorragie'
-  | 'etouffement'
-  | 'brulure'
+  | 'road_accident'
+  | 'bleeding'
+  | 'choking'
+  | 'burn'
   | 'malaise'
-  | 'chute'
-  | 'arret_cardiaque'
-  | 'noyade';
+  | 'fall'
+  | 'cardiac_arrest'
+  | 'drowning';
 
-const VITAL_COURSES: ReadonlySet<CourseType> = new Set(['hemorragie', 'arret_cardiaque', 'noyade']);
+const VITAL_COURSES: ReadonlySet<CourseType> = new Set(['bleeding', 'cardiac_arrest', 'drowning']);
 
 const MONOGRAM: Record<CourseType, string> = {
-  accident_circulation: 'AC',
-  hemorragie: 'HE',
-  etouffement: 'ET',
-  brulure: 'BR',
+  road_accident: 'AC',
+  bleeding: 'HE',
+  choking: 'ET',
+  burn: 'BR',
   malaise: 'MA',
-  chute: 'CH',
-  arret_cardiaque: 'AR',
-  noyade: 'NO',
+  fall: 'CH',
+  cardiac_arrest: 'AR',
+  drowning: 'NO',
 };
 
 type CourseIconProps = {

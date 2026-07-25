@@ -14,5 +14,5 @@ export default function Index() {
     return <View style={{ flex: 1, backgroundColor: colors.lightGray }} />;
   }
 
-  return <Redirect href={token ? '/(tabs)/index' : '/(auth)/login'} />;
+  return <Redirect href={token ? '/(tabs)' : '/(auth)/login'} />;
 }

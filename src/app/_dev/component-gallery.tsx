@@ -83,11 +83,11 @@ export default function ComponentGalleryScreen() {
 
       <Section title="CourseIcon (vital vs standard)">
         <View style={styles.iconRow}>
-          <CourseIcon type="hemorragie" />
-          <CourseIcon type="arret_cardiaque" />
-          <CourseIcon type="noyade" />
+          <CourseIcon type="bleeding" />
+          <CourseIcon type="cardiac_arrest" />
+          <CourseIcon type="drowning" />
           <CourseIcon type="malaise" />
-          <CourseIcon type="chute" />
+          <CourseIcon type="fall" />
         </View>
       </Section>
 

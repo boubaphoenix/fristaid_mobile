@@ -12,7 +12,7 @@ export default function AuthLayout() {
   }
 
   if (token) {
-    return <Redirect href="/(tabs)/index" />;
+    return <Redirect href="/(tabs)" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
