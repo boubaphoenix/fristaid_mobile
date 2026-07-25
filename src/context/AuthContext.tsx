@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { tokenStorage } from './tokenStorage';
+import { logout as logoutApi } from '@/lib/authApi';
 
 const TOKEN_KEY = 'africasecour_auth_token';
 
@@ -13,9 +14,10 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Fondation de la garde de navigation (Phase 0.4). Le token est stocké de
-// façon sécurisée côté mobile (jamais en clair) ; l'appel réseau qui
-// l'obtient (POST /auth/login, /auth/register) arrive en Phase 0.8.
+// Garde de navigation (Phase 0.4) + intégration réelle (Phase 0.8) :
+// signIn/signOut sont appelés par les écrans login/register après un
+// POST /auth/login ou /auth/register réel. Le token est stocké de façon
+// sécurisée côté mobile (jamais en clair).
 export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +38,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setToken(newToken);
       },
       signOut: async () => {
+        // JWT sans état côté serveur : l'appel est best-effort (symétrie
+        // API), la déconnexion locale ne doit jamais en dépendre.
+        if (token) {
+          await logoutApi(token).catch(() => {});
+        }
         await tokenStorage.deleteItemAsync(TOKEN_KEY);
         setToken(null);
       },
