@@ -1,65 +1,113 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// mobile/src/constants/theme.ts
+// AFRICASECOUR — source de vérité visuelle. Ne jamais coder une valeur en dur ailleurs.
 
-import '@/global.css';
+export const colors = {
+  emergencyRed: '#D62828',
+  trustBlue: '#1565C0',
+  successGreen: '#2E7D32',
+  warningOrange: '#F57C00',
+  lightGray: '#F5F7FA',
+  white: '#FFFFFF',
+  darkText: '#263238',
+  mutedText: '#607D8B',
+  border: '#E0E0E0',
+  stressSubtext: '#B0BEC5',
 
-import { Platform } from 'react-native';
+  // fonds de blocs (couleur de rôle à faible opacité)
+  successBg: 'rgba(46, 125, 50, 0.12)',
+  emergencyBg: 'rgba(214, 40, 40, 0.10)',
+  warningBg: 'rgba(245, 124, 0, 0.12)',
+} as const;
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+export const fonts = {
+  display: 'Archivo_700Bold',
+  displayBlack: 'Archivo_800ExtraBold',
+  body: 'IBMPlexSans_400Regular',
+  bodyBold: 'IBMPlexSans_600SemiBold',
+  mono: 'IBMPlexMono_400Regular',
+  monoBold: 'IBMPlexMono_600SemiBold',
+} as const;
+
+export const typography = {
+  h1:       { fontFamily: fonts.display, fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
+  h2:       { fontFamily: fonts.display, fontSize: 24, lineHeight: 30, letterSpacing: -0.5 },
+  h3:       { fontFamily: fonts.display, fontSize: 20, lineHeight: 26, letterSpacing: -0.4 },
+  body:     { fontFamily: fonts.body,     fontSize: 16, lineHeight: 24 },
+  bodyBold: { fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 24 },
+  small:    { fontFamily: fonts.body,     fontSize: 14, lineHeight: 20 },
+  caption:  { fontFamily: fonts.body,     fontSize: 12, lineHeight: 16 },
+  // données vérifiables — toujours en mono
+  data:     { fontFamily: fonts.mono,     fontSize: 16, lineHeight: 24 },
+  dataLarge:{ fontFamily: fonts.monoBold, fontSize: 32, lineHeight: 38 },
+} as const;
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+  screenPadding: 20, // exception imposée par le PRD
+} as const;
+
+export const radius = {
+  none: 0,
+  button: 4,
+  pill: 4,
+  card: 8, // maximum absolu
+} as const;
+
+export const sizes = {
+  touchMin: 56,
+  touchStress: 72,
+  inputHeight: 56,
+  sosButtonHeight: 120,
+  cardMinHeight: 88,
+  bannerHeight: 56,
+  chevronHeight: 8,
+  navHeight: 64,
+} as const;
+
+// Deux régimes visuels. Sélectionner via un contexte ou une prop d'écran.
+export const modeNormal = {
+  background: colors.lightGray,
+  text: colors.darkText,
+  textMuted: colors.mutedText,
+  minContrast: 4.5,
+} as const;
+
+export const modeStress = {
+  background: colors.darkText,
+  text: colors.white,
+  textMuted: colors.stressSubtext,
+  banner: colors.emergencyRed,
+  buttonHeight: sizes.touchStress,
+  minContrast: 7,
+} as const;
+
+export const shadows = {
+  // interdit ailleurs ; réservé nav basse et bouton fixe
+  elevationNav: {
+    shadowColor: colors.darkText,
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 3,
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const theme = {
+  colors,
+  fonts,
+  typography,
+  spacing,
+  radius,
+  sizes,
+  modeNormal,
+  modeStress,
+  shadows,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export type Theme = typeof theme;
+export default theme;
