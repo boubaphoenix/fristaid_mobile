@@ -14,10 +14,10 @@ export type AuthUser = {
 
 type AuthResponse = { token: string; user: AuthUser };
 
-export function registerAccount(email: string, password: string, full_name?: string) {
+export function registerAccount(email: string, password: string, full_name?: string, phone?: string) {
   return apiFetch<AuthResponse>('/auth/register', {
     method: 'POST',
-    body: { email, password, full_name },
+    body: { email, password, full_name, phone },
   });
 }
 
