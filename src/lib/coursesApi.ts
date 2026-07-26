@@ -5,7 +5,7 @@ import { apiFetch } from './api';
 export type CourseProgress = {
   is_course_completed: boolean;
   quiz_best_score: number;
-  completed_lessons: unknown;
+  completed_lessons: string[];
   last_accessed_at: string | null;
 };
 
@@ -23,7 +23,36 @@ export type Course = {
   progress: CourseProgress | null;
 };
 
+export type Lesson = {
+  id: string;
+  title: string;
+  content: string;
+  content_type: string;
+  sort_order: number;
+  is_required: boolean;
+  completed: boolean;
+};
+
+export type CompleteLessonResult = {
+  completed_lessons: string[];
+  is_course_completed: boolean;
+  points_awarded: number;
+};
+
 export async function getCourses(token: string) {
   const { courses } = await apiFetch<{ courses: Course[] }>('/courses', { token });
   return courses;
+}
+
+export function getCourseDetail(token: string, courseId: string) {
+  return apiFetch<Course>(`/courses/${courseId}`, { token });
+}
+
+export async function getCourseLessons(token: string, courseId: string) {
+  const { lessons } = await apiFetch<{ lessons: Lesson[] }>(`/courses/${courseId}/lessons`, { token });
+  return lessons;
+}
+
+export function completeLesson(token: string, lessonId: string) {
+  return apiFetch<CompleteLessonResult>(`/lessons/${lessonId}/complete`, { method: 'POST', token });
 }
