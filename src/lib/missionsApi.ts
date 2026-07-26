@@ -9,7 +9,17 @@ export type Mission = {
   status: 'pending' | 'completed' | null;
 };
 
+export type CompleteMissionResult = {
+  status: 'completed';
+  completed_at: string;
+  points_awarded: number;
+};
+
 export async function getMissions(token: string) {
   const { missions } = await apiFetch<{ missions: Mission[] }>('/missions', { token });
   return missions;
+}
+
+export function completeMission(token: string, missionId: string) {
+  return apiFetch<CompleteMissionResult>(`/missions/${missionId}/complete`, { method: 'POST', token });
 }
