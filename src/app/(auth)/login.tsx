@@ -1,17 +1,17 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { PrimaryButton, Screen, TextField } from '@/components/ui';
-import { spacing, typography } from '@/constants/theme';
+import { OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
+import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { login } from '@/lib/authApi';
 
-// Fonctionnel minimal (Phase 0.8) — POST /auth/login réel, suffisant pour
-// obtenir un utilisateur de test et atteindre les tabs. Le design
-// pixel-perfect (écran 03 : œil mot de passe, "Consignes sans compte"...)
-// arrive en Vague 4, sans changer cette logique de soumission.
+// Écran 03 — logique déjà fonctionnelle depuis la Phase 0.8
+// (POST /auth/login réel) ; cette version ajoute l'habillage Banani
+// ("Consignes sans compte" vers l'écran d'urgence sans auth) sans changer
+// la soumission.
 export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
@@ -50,6 +50,12 @@ export default function LoginScreen() {
         error={error ?? undefined}
         style={styles.spaced}
       />
+
+      {/* Mot de passe oublié hors périmètre MVP (§8.2) : lien inerte assumé, pas de fausse promesse de flux fonctionnel. */}
+      <Pressable disabled accessibilityRole="link" style={styles.forgotLink}>
+        <Text style={[typography.small, styles.mutedLink]}>Mot de passe oublié ?</Text>
+      </Pressable>
+
       <PrimaryButton
         label={isSubmitting ? 'Connexion...' : 'Se connecter'}
         onPress={handleSubmit}
@@ -58,8 +64,15 @@ export default function LoginScreen() {
         style={styles.spaced}
       />
       <Link href="/(auth)/register">
-        <Text style={typography.bodyBold}>Créer un compte</Text>
+        <Text style={[typography.bodyBold, styles.spaced]}>Créer un compte</Text>
       </Link>
+
+      <OutlineButton
+        label="Consignes sans compte"
+        onPress={() => router.push('/(auth)/emergency-guide')}
+        variant="danger"
+        style={styles.spaced}
+      />
     </Screen>
   );
 }
@@ -67,5 +80,12 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   spaced: {
     marginBottom: spacing.md,
+  },
+  forgotLink: {
+    alignSelf: 'flex-end',
+    marginBottom: spacing.lg,
+  },
+  mutedLink: {
+    color: colors.mutedText,
   },
 });
