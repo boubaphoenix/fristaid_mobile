@@ -82,6 +82,19 @@ export default function HomeScreen() {
 
   return (
     <Screen mode="normal" scroll>
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Kits de secours"
+          onPress={() => router.push('/kits')}
+          style={styles.kitButton}>
+          <View style={styles.kitCross}>
+            <View style={styles.kitCrossV} />
+            <View style={styles.kitCrossH} />
+          </View>
+        </Pressable>
+      </View>
+
       <View style={styles.header}>
         <Text style={typography.h2}>
           Bonjour{profile.profile.full_name ? `, ${profile.profile.full_name}` : ''}
@@ -140,10 +153,13 @@ export default function HomeScreen() {
       {recommendedKit ? (
         <View style={styles.spaced}>
           <Text style={[typography.bodyBold, styles.sectionTitle]}>Kit recommandé</Text>
-          <Card>
-            <Text style={typography.h3}>{recommendedKit.name}</Text>
-            <Text style={[typography.data, styles.muted]}>{recommendedKit.price_xof} FCFA</Text>
-          </Card>
+          <Pressable
+            onPress={() => router.push({ pathname: '/kits/[kitId]', params: { kitId: recommendedKit.id } })}>
+            <Card>
+              <Text style={typography.h3}>{recommendedKit.name}</Text>
+              <Text style={[typography.data, styles.muted]}>{recommendedKit.price_xof} FCFA</Text>
+            </Card>
+          </Pressable>
         </View>
       ) : null}
 
@@ -156,6 +172,41 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: spacing.sm,
+  },
+  kitButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.card,
+    backgroundColor: colors.trustBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kitCross: {
+    width: 20,
+    height: 20,
+  },
+  kitCrossV: {
+    position: 'absolute',
+    left: 8.5,
+    top: 2,
+    width: 3,
+    height: 16,
+    backgroundColor: colors.white,
+    borderRadius: 1,
+  },
+  kitCrossH: {
+    position: 'absolute',
+    left: 2,
+    top: 8.5,
+    width: 16,
+    height: 3,
+    backgroundColor: colors.white,
+    borderRadius: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
