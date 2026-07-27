@@ -166,8 +166,10 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {/* Écran Passeport livré en Vague 7 — accès inerte pour l'instant. */}
-      <Pressable style={[styles.spaced, styles.passportRow]} accessibilityRole="button" disabled>
+      <Pressable
+        style={[styles.spaced, styles.passportRow]}
+        accessibilityRole="button"
+        onPress={() => router.push('/passport')}>
         <Text style={typography.bodyBold}>Mon Passeport</Text>
       </Pressable>
     </Screen>
