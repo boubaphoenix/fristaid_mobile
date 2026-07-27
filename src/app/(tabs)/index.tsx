@@ -88,9 +88,12 @@ export default function HomeScreen() {
           accessibilityLabel="Kits de secours"
           onPress={() => router.push('/kits')}
           style={styles.kitButton}>
-          <View style={styles.kitCross}>
-            <View style={styles.kitCrossV} />
-            <View style={styles.kitCrossH} />
+          <View style={styles.kitBadge}>
+            <View style={styles.bagHandle} />
+            <View style={styles.bagBody}>
+              <View style={styles.bagCrossV} />
+              <View style={styles.bagCrossH} />
+            </View>
           </View>
         </Pressable>
       </View>
@@ -177,33 +180,57 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingTop: spacing.sm,
   },
+  // Exception documentée à la règle "emergencyRed réservé aux urgences
+  // réelles" : demande explicite de l'utilisateur (2026-07-27) pour ce
+  // bouton précis. Pictogramme en formes géométriques (pas d'image
+  // importée) pour rester cohérent avec CourseIcon/ChevronStrip.
   kitButton: {
     width: 44,
     height: 44,
     borderRadius: radius.card,
-    backgroundColor: colors.trustBlue,
+    backgroundColor: colors.emergencyRed,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  kitCross: {
-    width: 20,
-    height: 20,
+  kitBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  kitCrossV: {
+  bagHandle: {
     position: 'absolute',
-    left: 8.5,
-    top: 2,
-    width: 3,
-    height: 16,
+    top: 5,
+    width: 10,
+    height: 5,
+    borderWidth: 2,
+    borderColor: colors.emergencyRed,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+  },
+  bagBody: {
+    width: 18,
+    height: 13,
+    marginTop: 6,
+    borderRadius: 3,
+    backgroundColor: colors.emergencyRed,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bagCrossV: {
+    position: 'absolute',
+    width: 2,
+    height: 8,
     backgroundColor: colors.white,
     borderRadius: 1,
   },
-  kitCrossH: {
+  bagCrossH: {
     position: 'absolute',
-    left: 2,
-    top: 8.5,
-    width: 16,
-    height: 3,
+    width: 8,
+    height: 2,
     backgroundColor: colors.white,
     borderRadius: 1,
   },
