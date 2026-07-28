@@ -25,6 +25,7 @@ export default function LoginScreen() {
     try {
       const { token } = await login(email, password);
       await signIn(token);
+      router.replace('/post-auth-loading');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Impossible de se connecter pour le moment.");
     } finally {

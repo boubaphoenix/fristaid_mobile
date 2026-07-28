@@ -62,6 +62,7 @@ export default function RegisterScreen() {
     try {
       const { token } = await registerAccount(email, password, fullName || undefined, normalizePhone(phone));
       await signIn(token);
+      router.replace('/post-auth-loading');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Impossible de créer le compte pour le moment.");
     } finally {
