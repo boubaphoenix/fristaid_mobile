@@ -19,6 +19,22 @@ export const colors = {
   warningBg: 'rgba(245, 124, 0, 0.12)',
 } as const;
 
+// Nouvelle identité de marque (planche Banani, 2026-07). Séparée de
+// `colors` : `colors` reste le code couleur sémantique de sécurité
+// (urgence/succès/avertissement), `brand` est l'habillage visuel
+// (fond, primaire, accent) réutilisé sur landing/onboarding/écran de
+// chargement.
+export const brand = {
+  forest: '#16342A',
+  forestDeep: '#122A22',
+  terracotta: '#C8552C',
+  cream: '#F1ECE0',
+  creamCard: '#FFFFFF',
+  sage: '#8CA290',
+  mutedOnDark: 'rgba(255,255,255,0.55)',
+  mutedOnLight: '#7C8571',
+} as const;
+
 export const fonts = {
   display: 'Archivo_700Bold',
   displayBlack: 'Archivo_800ExtraBold',
@@ -99,6 +115,7 @@ export const shadows = {
 
 export const theme = {
   colors,
+  brand,
   fonts,
   typography,
   spacing,
