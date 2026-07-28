@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import { colors } from '@/constants/theme';
+import { brand } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { hasSeenOnboarding } from '@/lib/onboardingStorage';
 
@@ -20,7 +20,7 @@ export default function Index() {
   }, [token]);
 
   if (isLoading || (!token && onboardingSeen === null)) {
-    return <View style={{ flex: 1, backgroundColor: colors.lightGray }} />;
+    return <View style={{ flex: 1, backgroundColor: brand.cream }} />;
   }
 
   if (token) {

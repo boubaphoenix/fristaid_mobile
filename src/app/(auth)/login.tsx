@@ -1,8 +1,8 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
+import { LogoMark, OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
@@ -35,6 +35,9 @@ export default function LoginScreen() {
 
   return (
     <Screen mode="normal">
+      <View style={styles.logoHeader}>
+        <LogoMark size={48} variant="onCream" />
+      </View>
       <Text style={[typography.h2, styles.spaced]}>Connexion</Text>
       <TextField
         label="E-mail"
@@ -79,6 +82,11 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  logoHeader: {
+    alignItems: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   spaced: {
     marginBottom: spacing.md,
   },

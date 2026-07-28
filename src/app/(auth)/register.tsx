@@ -2,7 +2,7 @@ import { Link, router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PointsBadge, PrimaryButton, Screen, TextField } from '@/components/ui';
+import { LogoMark, PointsBadge, PrimaryButton, Screen, TextField } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
@@ -72,6 +72,9 @@ export default function RegisterScreen() {
 
   return (
     <Screen mode="normal" scroll>
+      <View style={styles.logoHeader}>
+        <LogoMark size={48} variant="onCream" />
+      </View>
       <View style={styles.headerRow}>
         <Text style={[typography.h2, styles.spaced]}>Créer un compte</Text>
         <PointsBadge value={100} />
@@ -150,6 +153,11 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
+  logoHeader: {
+    alignItems: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
