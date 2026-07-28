@@ -21,6 +21,12 @@ type PrimaryButtonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
+// `brand` (terracotta) = actions sur les surfaces de marque (welcome,
+// onboarding, écran de chargement post-connexion) et sur les CTA d'entrée
+// de l'app. `primary` (trustBlue) reste la couleur des actions in-app
+// existantes (Académie, Missions, Profil, etc.), non touchée par la
+// refonte de marque. `success`/`danger` restent le code couleur
+// sémantique de sécurité, jamais décoratif.
 const VARIANT_COLOR: Record<PrimaryButtonVariant, string> = {
   primary: colors.trustBlue,
   success: colors.successGreen,

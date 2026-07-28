@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors, radius, sizes, typography } from '@/constants/theme';
+import { brand, colors, radius, sizes, typography } from '@/constants/theme';
 
-type OutlineButtonVariant = 'primary' | 'danger';
+type OutlineButtonVariant = 'primary' | 'danger' | 'brand';
 
 type OutlineButtonProps = {
   label: string;
@@ -16,6 +16,7 @@ type OutlineButtonProps = {
 const VARIANT_COLOR: Record<OutlineButtonVariant, string> = {
   primary: colors.trustBlue,
   danger: colors.emergencyRed,
+  brand: brand.terracotta,
 };
 
 export function OutlineButton({

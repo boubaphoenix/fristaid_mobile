@@ -62,15 +62,22 @@ export default function OnboardingScreen() {
               label="Créer un compte"
               onPress={() => finishOnboarding('/(auth)/register')}
               style={styles.spaced}
+              variant="brand"
             />
             <OutlineButton
               label="J'ai déjà un compte"
               onPress={() => finishOnboarding('/(auth)/login')}
               style={styles.spaced}
+              variant="brand"
             />
           </>
         ) : (
-          <PrimaryButton label="Suivant" onPress={() => setSlideIndex((i) => i + 1)} style={styles.spaced} />
+          <PrimaryButton
+            label="Suivant"
+            onPress={() => setSlideIndex((i) => i + 1)}
+            style={styles.spaced}
+            variant="brand"
+          />
         )}
 
         <ResponsibilityNote text="AFRICASECOUR forme aux gestes de premiers secours. Cela ne remplace jamais un avis médical ni l'appel aux secours." />
