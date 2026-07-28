@@ -6,10 +6,11 @@ type ProgressSegmentsProps = {
   count: number;
   total: number;
   height?: number;
+  activeColor?: string;
 };
 
 // Progression en segments rectangulaires pleins (pas de barre continue).
-export function ProgressSegments({ count, total, height = 8 }: ProgressSegmentsProps) {
+export function ProgressSegments({ count, total, height = 8, activeColor = colors.trustBlue }: ProgressSegmentsProps) {
   return (
     <View style={styles.row}>
       {Array.from({ length: total }).map((_, index) => (
@@ -19,7 +20,7 @@ export function ProgressSegments({ count, total, height = 8 }: ProgressSegmentsP
             styles.segment,
             {
               height,
-              backgroundColor: index < count ? colors.trustBlue : colors.border,
+              backgroundColor: index < count ? activeColor : colors.border,
             },
           ]}
         />

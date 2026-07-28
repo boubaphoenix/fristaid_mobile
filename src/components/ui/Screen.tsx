@@ -9,11 +9,12 @@ type ScreenMode = 'normal' | 'stress';
 type ScreenProps = PropsWithChildren<{
   mode?: ScreenMode;
   scroll?: boolean;
+  backgroundColor?: string;
   style?: StyleProp<ViewStyle>;
 }>;
 
-export function Screen({ mode = 'normal', scroll = false, style, children }: ScreenProps) {
-  const background = mode === 'stress' ? modeStress.background : modeNormal.background;
+export function Screen({ mode = 'normal', scroll = false, backgroundColor, style, children }: ScreenProps) {
+  const background = backgroundColor ?? (mode === 'stress' ? modeStress.background : modeNormal.background);
   const Container = scroll ? ScrollView : View;
   const containerProps = scroll
     ? { contentContainerStyle: [styles.content, style] }

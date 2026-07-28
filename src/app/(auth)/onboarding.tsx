@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OutlineButton, PrimaryButton, ProgressSegments, ResponsibilityNote, Screen } from '@/components/ui';
-import { colors, spacing, typography } from '@/constants/theme';
+import { brand, colors, spacing, typography } from '@/constants/theme';
 import { markOnboardingSeen } from '@/lib/onboardingStorage';
 
 // Écran 01 — carousel 3 slides, statique (aucune donnée réseau). Le flag
@@ -38,10 +38,10 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen mode="normal">
+    <Screen mode="normal" backgroundColor={brand.cream}>
       <View style={styles.header}>
         <View style={styles.progress}>
-          <ProgressSegments count={slideIndex + 1} total={SLIDES.length} />
+          <ProgressSegments count={slideIndex + 1} total={SLIDES.length} activeColor={brand.terracotta} />
         </View>
         {isLastSlide ? null : (
           <Pressable accessibilityRole="button" onPress={() => finishOnboarding('/(auth)/login')} hitSlop={8}>
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   skip: {
-    color: colors.trustBlue,
+    color: brand.terracotta,
   },
   slideBody: {
     flex: 1,
