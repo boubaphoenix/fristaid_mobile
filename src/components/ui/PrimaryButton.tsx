@@ -7,9 +7,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { colors, radius, sizes, typography } from '@/constants/theme';
+import { brand, colors, radius, sizes, typography } from '@/constants/theme';
 
-type PrimaryButtonVariant = 'primary' | 'success' | 'danger';
+type PrimaryButtonVariant = 'primary' | 'success' | 'danger' | 'brand';
 
 type PrimaryButtonProps = {
   label: string;
@@ -25,6 +25,7 @@ const VARIANT_COLOR: Record<PrimaryButtonVariant, string> = {
   primary: colors.trustBlue,
   success: colors.successGreen,
   danger: colors.emergencyRed,
+  brand: brand.terracotta,
 };
 
 export function PrimaryButton({

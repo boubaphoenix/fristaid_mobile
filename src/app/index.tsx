@@ -27,5 +27,5 @@ export default function Index() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Redirect href={onboardingSeen ? '/(auth)/login' : '/(auth)/onboarding'} />;
+  return <Redirect href={onboardingSeen ? '/(auth)/login' : '/(auth)/welcome'} />;
 }
