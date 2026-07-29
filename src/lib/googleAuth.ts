@@ -7,9 +7,16 @@ WebBrowser.maybeCompleteAuthSession();
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 
 // Ne fonctionne que si EXPO_PUBLIC_GOOGLE_CLIENT_ID est renseigné (voir
-// .env.local) — sinon `request` reste null et isReady est false, le
-// bouton Google reste désactivé sans planter l'app (voir plan §Google
-// Cloud Console pour obtenir un Client ID).
+// .env.local) — sinon le bouton Google reste désactivé sans planter
+// l'app (voir plan §Google Cloud Console pour obtenir un Client ID).
+//
+// Le client id doit rester une chaîne vide (pas `undefined`) : passer
+// `undefined` fait planter `Google.useAuthRequest` sur web avec
+// "Client Id property `webClientId` must be defined". Mais une chaîne
+// vide fait que `request` reste non-null (la lib ne valide pas le
+// contenu, seulement `undefined`) — donc `isReady` ne peut pas se fier à
+// `request` seul et doit vérifier explicitement que le client id est
+// configuré.
 export function useGoogleSignIn(
   onIdToken: (idToken: string) => void,
   onError: (message: string) => void,
@@ -33,5 +40,5 @@ export function useGoogleSignIn(
     // popup volontairement, pas une erreur à afficher.
   }, [response]);
 
-  return { promptAsync: () => promptAsync(), isReady: Boolean(request) };
+  return { promptAsync: () => promptAsync(), isReady: Boolean(GOOGLE_CLIENT_ID) && Boolean(request) };
 }
