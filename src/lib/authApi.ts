@@ -28,6 +28,13 @@ export function login(email: string, password: string) {
   });
 }
 
+export function signInWithGoogle(id_token: string) {
+  return apiFetch<AuthResponse>('/auth/google', {
+    method: 'POST',
+    body: { id_token },
+  });
+}
+
 export function logout(token: string) {
   return apiFetch<{ success: true }>('/auth/logout', { method: 'POST', token });
 }
