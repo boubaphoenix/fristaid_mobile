@@ -97,8 +97,11 @@ export default function LoginScreen() {
       <GoogleButton
         onPress={promptAsync}
         disabled={!isReady || isSubmitting || isGoogleSubmitting}
-        style={styles.spaced}
       />
+      <Text style={[typography.caption, styles.mutedLink, styles.googleDisclaimer]}>
+        En continuant avec Google, vous acceptez les Conditions Générales d'Utilisation
+        d'AFRICASECOUR.
+      </Text>
       {googleError ? (
         <Text style={[typography.small, styles.googleError, styles.spaced]}>{googleError}</Text>
       ) : null}
@@ -148,5 +151,10 @@ const styles = StyleSheet.create({
   },
   googleError: {
     color: colors.emergencyRed,
+  },
+  googleDisclaimer: {
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
   },
 });

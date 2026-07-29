@@ -29,8 +29,15 @@ export function useGoogleSignIn(
 
   useEffect(() => {
     if (!response) return;
-    if (response.type === 'success' && response.authentication?.idToken) {
-      onIdToken(response.authentication.idToken);
+    // Avec `responseType: 'id_token'`, Google renvoie l'id_token dans les
+    // query params du redirect (`response.params.id_token`) — `response.
+    // authentication` reste `null` tant qu'aucun `access_token` n'est
+    // présent (voir expo-auth-session/build/AuthRequest.js), ce qui
+    // n'arrive jamais avec ce responseType. Lire `authentication` d'abord
+    // reste correct si le responseType change un jour pour `code`/`token`.
+    const idToken = response.type === 'success' ? (response.authentication?.idToken ?? response.params?.id_token) : undefined;
+    if (response.type === 'success' && idToken) {
+      onIdToken(idToken);
     } else if (response.type === 'success') {
       onError('Réponse Google invalide, réessayez.');
     } else if (response.type === 'error') {
