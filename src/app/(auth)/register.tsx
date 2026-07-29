@@ -2,11 +2,12 @@ import { Link, router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { LogoMark, PointsBadge, PrimaryButton, Screen, TextField } from '@/components/ui';
+import { GoogleButton, LogoMark, PointsBadge, PrimaryButton, Screen, TextField } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
-import { registerAccount } from '@/lib/authApi';
+import { registerAccount, signInWithGoogle } from '@/lib/authApi';
+import { useGoogleSignIn } from '@/lib/googleAuth';
 
 const PHONE_PREFIX = '+225';
 
@@ -52,6 +53,8 @@ export default function RegisterScreen() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const strength = useMemo(() => computeStrength(password), [password]);
   const canSubmit = Boolean(email && password && acceptedTerms) && !isSubmitting;
@@ -69,6 +72,25 @@ export default function RegisterScreen() {
       setIsSubmitting(false);
     }
   }
+
+  const { promptAsync, isReady } = useGoogleSignIn(
+    async (idToken) => {
+      setGoogleError(null);
+      setIsGoogleSubmitting(true);
+      try {
+        const { token } = await signInWithGoogle(idToken);
+        await signIn(token);
+        router.replace('/post-auth-loading');
+      } catch (err) {
+        setGoogleError(
+          err instanceof ApiError ? err.message : 'Impossible de continuer avec Google pour le moment.',
+        );
+      } finally {
+        setIsGoogleSubmitting(false);
+      }
+    },
+    (message) => setGoogleError(message),
+  );
 
   return (
     <Screen mode="normal" scroll>
@@ -142,9 +164,22 @@ export default function RegisterScreen() {
         label={isSubmitting ? 'Création...' : 'Créer mon compte'}
         onPress={handleSubmit}
         loading={isSubmitting}
-        disabled={!canSubmit}
+        disabled={!canSubmit || isGoogleSubmitting}
         style={styles.spaced}
       />
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={[typography.small, styles.dividerText]}>ou</Text>
+        <View style={styles.dividerLine} />
+      </View>
+      <GoogleButton
+        onPress={promptAsync}
+        disabled={!isReady || isSubmitting || isGoogleSubmitting}
+        style={styles.spaced}
+      />
+      {googleError ? (
+        <Text style={[typography.small, styles.googleError, styles.spaced]}>{googleError}</Text>
+      ) : null}
       <Link href="/(auth)/login">
         <Text style={typography.bodyBold}>J'ai déjà un compte</Text>
       </Link>
@@ -210,5 +245,22 @@ const styles = StyleSheet.create({
   termsText: {
     flex: 1,
     color: colors.darkText,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.mutedText,
+  },
+  googleError: {
+    color: colors.emergencyRed,
   },
 });
