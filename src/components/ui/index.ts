@@ -11,3 +11,4 @@ export { ResponsibilityNote } from './ResponsibilityNote';
 export { EmergencyBanner } from './EmergencyBanner';
 export { StateView } from './StateView';
 export { LogoMark, Wordmark, LogoLockup, type LogoVariant } from './Logo';
+export { GoogleButton } from './GoogleButton';
