@@ -127,6 +127,17 @@ export default function SimulationScreen() {
       try {
         const answers = steps.map((s) => ({ step_id: s.id, selected_option: selectedByStep[s.id]! }));
         const submitResult = await submitSimulation(token, courseId, answers);
+        if (submitResult.badge) {
+          router.replace({
+            pathname: '/(tabs)/academy/[courseId]/badge',
+            params: {
+              courseId: submitResult.badge.course_id,
+              title: submitResult.badge.title,
+              description: submitResult.badge.description,
+            },
+          });
+          return;
+        }
         setResult(submitResult);
       } finally {
         setIsSubmitting(false);

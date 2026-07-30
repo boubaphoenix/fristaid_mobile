@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card, PathwayStepper, PrimaryButton, Screen, StateView } from '@/components/ui';
@@ -38,9 +38,11 @@ export default function CourseDetailScreen() {
     }
   }, [token, courseId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   if (state.status === 'loading') {
     return (
@@ -64,6 +66,7 @@ export default function CourseDetailScreen() {
   const progress = course.progress;
   const hasVideo = lessons.some((l) => l.youtube_video_id);
   const quizPassed = progress?.quiz_passed ?? false;
+  const hasSimulation = progress?.has_simulation ?? false;
   const simulationPassed = progress?.simulation_passed ?? false;
   const missionCompleted = progress?.mission_completed ?? false;
   const badgeAwarded = progress?.badge_awarded ?? false;
@@ -119,32 +122,36 @@ export default function CourseDetailScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.spaced}>
-        <Text style={[typography.bodyBold, styles.sectionTitle]}>Simulation</Text>
-        <Pressable
-          disabled={!quizPassed}
-          onPress={() =>
-            router.push({ pathname: '/(tabs)/academy/[courseId]/simulation', params: { courseId: course.id } })
-          }>
-          <Card style={!quizPassed ? styles.lockedCard : undefined}>
-            <Text style={typography.body}>
-              {quizPassed ? 'Faire la simulation' : 'Verrouillé — réussissez le quiz pour la débloquer'}
-            </Text>
-          </Card>
-        </Pressable>
-      </View>
+      {hasSimulation ? (
+        <View style={styles.spaced}>
+          <Text style={[typography.bodyBold, styles.sectionTitle]}>Simulation</Text>
+          <Pressable
+            disabled={!quizPassed}
+            onPress={() =>
+              router.push({ pathname: '/(tabs)/academy/[courseId]/simulation', params: { courseId: course.id } })
+            }>
+            <Card style={!quizPassed ? styles.lockedCard : undefined}>
+              <Text style={typography.body}>
+                {quizPassed ? 'Faire la simulation' : 'Verrouillé — réussissez le quiz pour la débloquer'}
+              </Text>
+            </Card>
+          </Pressable>
+        </View>
+      ) : null}
 
       {mission ? (
         <View style={styles.spaced}>
           <Text style={[typography.bodyBold, styles.sectionTitle]}>Mission</Text>
           <Pressable
-            disabled={!simulationPassed}
+            disabled={hasSimulation && !simulationPassed}
             onPress={() =>
               router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId: mission.id } })
             }>
-            <Card style={!simulationPassed ? styles.lockedCard : undefined}>
+            <Card style={hasSimulation && !simulationPassed ? styles.lockedCard : undefined}>
               <Text style={typography.body}>
-                {simulationPassed ? mission.title : 'Verrouillé — réussissez la simulation pour la débloquer'}
+                {hasSimulation && !simulationPassed
+                  ? 'Verrouillé — réussissez la simulation pour la débloquer'
+                  : mission.title}
               </Text>
             </Card>
           </Pressable>

@@ -5,13 +5,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { ApiError } from '@/lib/api';
 import { type Mission, completeMission, getMissions } from '@/lib/missionsApi';
 
 type State =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'not_found' }
-  | { status: 'ready'; mission: Mission; checked: boolean; submitting: boolean }
+  | { status: 'ready'; mission: Mission; checked: boolean; submitting: boolean; error: string | null }
   | { status: 'confirmed'; mission: Mission; pointsAwarded: number };
 
 // Écran 17 — pas de GET /missions/:id dédié : la liste (déjà chargée par
@@ -37,7 +38,7 @@ export default function MissionDetailScreen() {
         setState({ status: 'confirmed', mission, pointsAwarded: 0 });
         return;
       }
-      setState({ status: 'ready', mission, checked: false, submitting: false });
+      setState({ status: 'ready', mission, checked: false, submitting: false, error: null });
     } catch {
       setState({ status: 'error' });
     }
@@ -49,7 +50,7 @@ export default function MissionDetailScreen() {
 
   async function handleValidate() {
     if (state.status !== 'ready' || !token) return;
-    setState({ ...state, submitting: true });
+    setState({ ...state, submitting: true, error: null });
     try {
       const result = await completeMission(token, state.mission.id);
       if (result.badge) {
@@ -64,8 +65,9 @@ export default function MissionDetailScreen() {
         return;
       }
       setState({ status: 'confirmed', mission: state.mission, pointsAwarded: result.points_awarded });
-    } catch {
-      setState({ ...state, submitting: false });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Une erreur inattendue s'est produite.";
+      setState({ ...state, submitting: false, error: message });
     }
   }
 
@@ -137,6 +139,8 @@ export default function MissionDetailScreen() {
         <Text style={[typography.body, styles.checkText]}>J'ai réalisé cette mission.</Text>
       </Pressable>
 
+      {state.error ? <Text style={[typography.body, styles.errorText]}>{state.error}</Text> : null}
+
       <PrimaryButton
         label={submitting ? 'Validation...' : `Valider (+${mission.points_reward} pts)`}
         onPress={handleValidate}
@@ -195,5 +199,9 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     color: colors.successGreen,
+  },
+  errorText: {
+    color: colors.emergencyRed,
+    marginTop: spacing.md,
   },
 });

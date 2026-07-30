@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ChevronStrip, ResponsibilityNote, Screen, StateView } from '@/components/ui';
@@ -31,9 +31,11 @@ export default function PassportScreen() {
     }
   }, [token]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   return (
     <Screen mode="normal" scroll>

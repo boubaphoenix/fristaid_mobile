@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton, ResponsibilityNote, Screen } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { spacing, typography } from '@/constants/theme';
 
 type BadgeParams = {
   courseId: string;
