@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card, PrimaryButton, Screen, StateView } from '@/components/ui';
+import { Card, PathwayStepper, PrimaryButton, Screen, StateView } from '@/components/ui';
 import { VITAL_INCIDENTS } from '@/constants/sosContent';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -61,12 +61,29 @@ export default function CourseDetailScreen() {
   const isVital = VITAL_INCIDENTS.has(course.category);
   const allLessonsCompleted = lessons.length > 0 && lessons.every((l) => l.completed);
   const nextLesson = lessons.find((l) => !l.completed) ?? lessons[0];
+  const progress = course.progress;
+  const hasVideo = lessons.some((l) => l.youtube_video_id);
+  const quizPassed = progress?.quiz_passed ?? false;
+  const simulationPassed = progress?.simulation_passed ?? false;
+  const missionCompleted = progress?.mission_completed ?? false;
+  const badgeAwarded = progress?.badge_awarded ?? false;
 
   return (
     <Screen mode="normal" scroll>
       <View style={[styles.header, { backgroundColor: isVital ? colors.emergencyRed : colors.trustBlue }]}>
         <Text style={[typography.h2, styles.headerText]}>{course.title}</Text>
         <Text style={[typography.body, styles.headerText]}>{course.description}</Text>
+      </View>
+
+      <View style={styles.spaced}>
+        <PathwayStepper
+          videoAvailable={hasVideo}
+          lessonsCompleted={allLessonsCompleted}
+          quizPassed={quizPassed}
+          simulationPassed={simulationPassed}
+          missionCompleted={missionCompleted}
+          badgeAwarded={badgeAwarded}
+        />
       </View>
 
       <View style={styles.spaced}>
@@ -102,12 +119,46 @@ export default function CourseDetailScreen() {
         </Pressable>
       </View>
 
+      <View style={styles.spaced}>
+        <Text style={[typography.bodyBold, styles.sectionTitle]}>Simulation</Text>
+        <Pressable
+          disabled={!quizPassed}
+          onPress={() =>
+            router.push({ pathname: '/(tabs)/academy/[courseId]/simulation', params: { courseId: course.id } })
+          }>
+          <Card style={!quizPassed ? styles.lockedCard : undefined}>
+            <Text style={typography.body}>
+              {quizPassed ? 'Faire la simulation' : 'Verrouillé — réussissez le quiz pour la débloquer'}
+            </Text>
+          </Card>
+        </Pressable>
+      </View>
+
       {mission ? (
         <View style={styles.spaced}>
           <Text style={[typography.bodyBold, styles.sectionTitle]}>Mission</Text>
-          <Card>
-            <Text style={typography.body}>{mission.title}</Text>
-          </Card>
+          <Pressable
+            disabled={!simulationPassed}
+            onPress={() =>
+              router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId: mission.id } })
+            }>
+            <Card style={!simulationPassed ? styles.lockedCard : undefined}>
+              <Text style={typography.body}>
+                {simulationPassed ? mission.title : 'Verrouillé — réussissez la simulation pour la débloquer'}
+              </Text>
+            </Card>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {badgeAwarded ? (
+        <View style={styles.spaced}>
+          <Text style={[typography.bodyBold, styles.sectionTitle]}>Badge</Text>
+          <Pressable onPress={() => router.push('/passport')}>
+            <Card>
+              <Text style={typography.body}>🏅 Badge obtenu — voir le Passeport</Text>
+            </Card>
+          </Pressable>
         </View>
       ) : null}
 

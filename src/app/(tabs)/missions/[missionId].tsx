@@ -52,6 +52,17 @@ export default function MissionDetailScreen() {
     setState({ ...state, submitting: true });
     try {
       const result = await completeMission(token, state.mission.id);
+      if (result.badge) {
+        router.replace({
+          pathname: '/(tabs)/academy/[courseId]/badge',
+          params: {
+            courseId: result.badge.course_id,
+            title: result.badge.title,
+            description: result.badge.description,
+          },
+        });
+        return;
+      }
       setState({ status: 'confirmed', mission: state.mission, pointsAwarded: result.points_awarded });
     } catch {
       setState({ ...state, submitting: false });
