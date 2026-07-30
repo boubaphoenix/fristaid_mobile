@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { Component, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -14,6 +14,30 @@ import {
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
+
+// Filet de sécurité pour les échecs *synchrones* de VideoCapsule (ex. module
+// natif WebView manquant sur un build non regénéré) — le timeout interne de
+// VideoCapsule ne couvre que les échecs asynchrones (pas de onReady/onError).
+// Une leçon de premiers secours ne doit jamais devenir illisible à cause
+// d'une vidéo cassée : ce garde-fou isole l'échec au bloc vidéo seul.
+class VideoCapsuleBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.videoErrorBlock}>
+          <Text style={[typography.body, styles.videoErrorText]}>
+            Vidéo indisponible hors-ligne — lisez le cours ci-dessous
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Écran 07 — lecture d'une leçon.
 export default function LessonScreen() {
@@ -91,7 +115,9 @@ export default function LessonScreen() {
 
       {lesson.youtube_video_id ? (
         <View style={styles.spaced}>
-          <VideoCapsule videoId={lesson.youtube_video_id} durationSeconds={lesson.video_duration_seconds} />
+          <VideoCapsuleBoundary>
+            <VideoCapsule videoId={lesson.youtube_video_id} durationSeconds={lesson.video_duration_seconds} />
+          </VideoCapsuleBoundary>
         </View>
       ) : null}
 
@@ -139,5 +165,13 @@ const styles = StyleSheet.create({
   },
   retainText: {
     color: colors.white,
+  },
+  videoErrorBlock: {
+    backgroundColor: colors.warningBg,
+    borderRadius: radius.card,
+    padding: spacing.md,
+  },
+  videoErrorText: {
+    color: colors.darkText,
   },
 });
