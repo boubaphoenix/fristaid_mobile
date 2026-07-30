@@ -7,7 +7,7 @@ import { colors, fonts, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Passport, getPassport } from '@/lib/passportApi';
 
-type SectionKey = 'courses' | 'missions' | 'kits' | 'certificates';
+type SectionKey = 'courses' | 'missions' | 'kits' | 'certificates' | 'badges';
 
 // Écran 22 — passeport secouriste. Écran unique atteint uniquement depuis
 // l'accueil : pas besoin d'un groupe de routes avec son propre Stack pour
@@ -125,6 +125,21 @@ export default function PassportScreen() {
                     {c.course_title} — {c.score}%
                   </Text>
                 </Pressable>
+              ))
+            )}
+          </AccordionSection>
+
+          <AccordionSection
+            title={`Badges obtenus (${state.passport.badges.length})`}
+            expanded={expanded === 'badges'}
+            onToggle={() => setExpanded(expanded === 'badges' ? null : 'badges')}>
+            {state.passport.badges.length === 0 ? (
+              <Text style={[typography.body, styles.muted]}>Aucun badge obtenu pour le moment.</Text>
+            ) : (
+              state.passport.badges.map((b) => (
+                <Text key={b.id} style={[typography.body, styles.itemRow]}>
+                  🏅 {b.title}
+                </Text>
               ))
             )}
           </AccordionSection>
