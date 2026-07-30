@@ -28,6 +28,8 @@ export type Lesson = {
   title: string;
   content: string;
   content_type: string;
+  youtube_video_id: string | null;
+  video_duration_seconds: number | null;
   sort_order: number;
   is_required: boolean;
   completed: boolean;
