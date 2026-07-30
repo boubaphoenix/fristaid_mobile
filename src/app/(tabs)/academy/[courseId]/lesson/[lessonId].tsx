@@ -2,7 +2,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { ChevronStrip, PointsBadge, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
+import {
+  ChevronStrip,
+  PointsBadge,
+  PrimaryButton,
+  ProgressSegments,
+  Screen,
+  StateView,
+  VideoCapsule,
+} from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
@@ -80,6 +88,12 @@ export default function LessonScreen() {
       </View>
 
       <Text style={[typography.h2, styles.spaced]}>{lesson.title}</Text>
+
+      {lesson.youtube_video_id ? (
+        <View style={styles.spaced}>
+          <VideoCapsule videoId={lesson.youtube_video_id} durationSeconds={lesson.video_duration_seconds} />
+        </View>
+      ) : null}
 
       <View style={styles.spaced}>
         <ChevronStrip />
