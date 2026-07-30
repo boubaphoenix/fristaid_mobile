@@ -2,11 +2,25 @@ import type { CourseType } from '@/components/ui/CourseIcon';
 
 import { apiFetch } from './api';
 
+export type PathwayStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'lessons_completed'
+  | 'quiz_passed'
+  | 'simulation_passed'
+  | 'mission_completed'
+  | 'completed';
+
 export type CourseProgress = {
   is_course_completed: boolean;
   quiz_best_score: number;
   completed_lessons: string[];
   last_accessed_at: string | null;
+  quiz_passed: boolean;
+  simulation_passed: boolean;
+  mission_completed: boolean;
+  badge_awarded: boolean;
+  pathway_status: PathwayStatus;
 };
 
 export type Course = {

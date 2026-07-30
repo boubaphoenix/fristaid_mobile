@@ -12,6 +12,14 @@ export type Passport = {
     score: number;
     issued_at: string;
   }[];
+  badges: {
+    id: string;
+    course_id: string;
+    title: string;
+    description: string;
+    icon_url: string | null;
+    awarded_at: string;
+  }[];
 };
 
 export function getPassport(token: string) {

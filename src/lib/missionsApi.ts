@@ -9,10 +9,19 @@ export type Mission = {
   status: 'pending' | 'completed' | null;
 };
 
+export type MissionBadge = {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string;
+  icon_url: string | null;
+};
+
 export type CompleteMissionResult = {
   status: 'completed';
   completed_at: string;
   points_awarded: number;
+  badge: MissionBadge | null;
 };
 
 export async function getMissions(token: string) {
