@@ -75,7 +75,9 @@ export default function MissionsListScreen() {
               <Pressable
                 key={mission.id}
                 onPress={() =>
-                  router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId: mission.id } })
+                  mission.course_id
+                    ? router.push({ pathname: '/(tabs)/academy/[courseId]', params: { courseId: mission.course_id } })
+                    : router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId: mission.id } })
                 }>
                 <Card minHeight={96} style={[styles.missionCard, completed && styles.missionCardCompleted]}>
                   <View style={styles.missionInfo}>
