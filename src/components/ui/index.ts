@@ -14,3 +14,4 @@ export { LogoMark, Wordmark, LogoLockup, type LogoVariant } from './Logo';
 export { GoogleButton } from './GoogleButton';
 export { VideoCapsule } from './VideoCapsule';
 export { PathwayStepper } from './PathwayStepper';
+export { TitleProgressCard } from './TitleProgressCard';
