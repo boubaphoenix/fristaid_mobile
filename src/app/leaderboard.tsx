@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card, ChevronStrip, Screen, StateView, TitleProgressCard } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import {
   type LeaderboardResponse,
@@ -49,6 +49,7 @@ export default function LeaderboardScreen() {
       <View style={[styles.toggleRow, styles.spaced]}>
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ selected: period === 'week' }}
           onPress={() => setPeriod('week')}
           style={[styles.toggleButton, period === 'week' && styles.toggleButtonActive]}>
           <Text style={[typography.bodyBold, period === 'week' ? styles.toggleTextActive : styles.toggleText]}>
@@ -57,6 +58,7 @@ export default function LeaderboardScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ selected: period === 'month' }}
           onPress={() => setPeriod('month')}
           style={[styles.toggleButton, period === 'month' && styles.toggleButtonActive]}>
           <Text style={[typography.bodyBold, period === 'month' ? styles.toggleTextActive : styles.toggleText]}>
@@ -135,6 +137,8 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     flex: 1,
+    minHeight: sizes.touchMin,
+    justifyContent: 'center',
     paddingVertical: spacing.sm,
     borderRadius: radius.button,
     borderWidth: 1,
