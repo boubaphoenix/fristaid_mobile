@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { OutlineButton, PrimaryButton, Screen, StateView, TextField } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
@@ -130,6 +131,14 @@ export default function ProfileScreen() {
         />
       </View>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/leaderboard')}
+        style={styles.leaderboardRow}>
+        <Text style={typography.bodyBold}>Mon classement / Mes titres</Text>
+        <Text style={[typography.small, styles.muted]}>Voir mon rang et ma progression</Text>
+      </Pressable>
+
       <OutlineButton label="Se déconnecter" onPress={signOut} variant="danger" style={styles.spacedLg} />
     </Screen>
   );
@@ -180,5 +189,15 @@ const styles = StyleSheet.create({
   },
   remindersText: {
     flex: 1,
+  },
+  leaderboardRow: {
+    marginTop: spacing.md,
+    minHeight: 64,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    gap: spacing.xs,
   },
 });
