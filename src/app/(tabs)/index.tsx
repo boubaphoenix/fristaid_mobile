@@ -17,6 +17,7 @@ import { type Kit, getKits } from '@/lib/kitsApi';
 import { type Mission, getMissions } from '@/lib/missionsApi';
 import { type AuthUser } from '@/lib/authApi';
 import { getProfile } from '@/lib/profileApi';
+import { type LeaderboardResponse, getWeeklyLeaderboard } from '@/lib/leaderboardApi';
 
 const RESUME_MESSAGE =
   'Encore quelques minutes pour terminer votre cours. Chaque geste appris peut compter en situation d’urgence.';
@@ -26,6 +27,7 @@ type HomeData = {
   courses: Course[];
   missions: Mission[];
   kits: Kit[];
+  leaderboard: LeaderboardResponse | null;
 };
 
 export default function HomeScreen() {
@@ -38,13 +40,14 @@ export default function HomeScreen() {
     if (!token) return;
     setState({ status: 'loading' });
     try {
-      const [profile, courses, missions, kits] = await Promise.all([
+      const [profile, courses, missions, kits, leaderboard] = await Promise.all([
         getProfile(token),
         getCourses(token),
         getMissions(token),
         getKits(),
+        getWeeklyLeaderboard(token).catch(() => null),
       ]);
-      setState({ status: 'success', data: { profile, courses, missions, kits } });
+      setState({ status: 'success', data: { profile, courses, missions, kits, leaderboard } });
     } catch {
       setState({
         status: 'error',
@@ -73,7 +76,7 @@ export default function HomeScreen() {
     );
   }
 
-  const { profile, courses, missions, kits } = state.data;
+  const { profile, courses, missions, kits, leaderboard } = state.data;
   const completedCount = courses.filter((c) => c.progress?.is_course_completed).length;
   const courseInProgress = courses.find((c) => c.progress && !c.progress.is_course_completed) ?? null;
   const recommendedMission = missions.find((m) => m.status !== 'completed') ?? null;
@@ -119,6 +122,20 @@ export default function HomeScreen() {
         <Text style={[typography.bodyBold, styles.sectionTitle]}>Progression globale</Text>
         <ProgressSegments count={completedCount} total={courses.length || 1} />
       </View>
+
+      {leaderboard ? (
+        <View style={styles.spaced}>
+          <Text style={[typography.bodyBold, styles.sectionTitle]}>Défi Secours de la semaine</Text>
+          <Pressable onPress={() => router.push('/leaderboard')}>
+            <Card>
+              <Text style={typography.body}>{leaderboard.me.message}</Text>
+              <Text style={[typography.data, styles.muted]}>
+                Rang {leaderboard.me.rank} cette semaine · {leaderboard.me.points} points
+              </Text>
+            </Card>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View style={styles.spaced}>
         <Text style={[typography.bodyBold, styles.sectionTitle]}>Reprendre un cours</Text>
