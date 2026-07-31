@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PrimaryButton, Screen, StateView } from '@/components/ui';
+import { PrimaryButton, Screen, StateView, TextField } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
@@ -12,7 +12,7 @@ type State =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'not_found' }
-  | { status: 'ready'; mission: Mission; checked: boolean; submitting: boolean; error: string | null }
+  | { status: 'ready'; mission: Mission; checked: boolean; note: string; submitting: boolean; error: string | null }
   | { status: 'confirmed'; mission: Mission; pointsAwarded: number };
 
 // Écran 17 — pas de GET /missions/:id dédié : la liste (déjà chargée par
@@ -38,7 +38,7 @@ export default function MissionDetailScreen() {
         setState({ status: 'confirmed', mission, pointsAwarded: 0 });
         return;
       }
-      setState({ status: 'ready', mission, checked: false, submitting: false, error: null });
+      setState({ status: 'ready', mission, checked: false, note: '', submitting: false, error: null });
     } catch {
       setState({ status: 'error' });
     }
@@ -52,7 +52,7 @@ export default function MissionDetailScreen() {
     if (state.status !== 'ready' || !token) return;
     setState({ ...state, submitting: true, error: null });
     try {
-      const result = await completeMission(token, state.mission.id);
+      const result = await completeMission(token, state.mission.id, state.note);
       if (result.badge) {
         router.replace({
           pathname: '/(tabs)/academy/[courseId]/badge',
@@ -118,7 +118,7 @@ export default function MissionDetailScreen() {
     );
   }
 
-  const { mission, checked, submitting } = state;
+  const { mission, checked, note, submitting } = state;
 
   return (
     <Screen mode="normal" scroll>
@@ -138,6 +138,15 @@ export default function MissionDetailScreen() {
         </View>
         <Text style={[typography.body, styles.checkText]}>J'ai réalisé cette mission.</Text>
       </Pressable>
+
+      <TextField
+        label="Décris ce que tu as fait (optionnel)"
+        value={note}
+        onChangeText={(value) => setState({ ...state, note: value })}
+        placeholder="Ex. : j'ai vérifié le contenu du kit et localisé son emplacement."
+        multiline
+        numberOfLines={4}
+      />
 
       {state.error ? <Text style={[typography.body, styles.errorText]}>{state.error}</Text> : null}
 

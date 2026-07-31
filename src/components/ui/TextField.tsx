@@ -22,6 +22,8 @@ type TextFieldProps = {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   style?: StyleProp<ViewStyle>;
+  multiline?: boolean;
+  numberOfLines?: number;
 };
 
 export function TextField({
@@ -34,6 +36,8 @@ export function TextField({
   keyboardType,
   autoCapitalize = 'none',
   style,
+  multiline = false,
+  numberOfLines,
 }: TextFieldProps) {
   const [revealed, setRevealed] = useState(false);
   const hasError = Boolean(error);
@@ -45,6 +49,7 @@ export function TextField({
       <View
         style={[
           styles.inputRow,
+          multiline && styles.inputRowMultiline,
           { borderColor: hasError ? colors.emergencyRed : colors.border },
         ]}>
         <TextInput
@@ -55,7 +60,9 @@ export function TextField({
           secureTextEntry={isPassword && !revealed}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          style={[typography.body, styles.input]}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          style={[typography.body, styles.input, multiline && styles.inputMultiline]}
         />
         {isPassword ? (
           <Pressable
@@ -86,10 +93,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
   },
+  inputRowMultiline: {
+    height: undefined,
+    minHeight: sizes.inputHeight,
+    alignItems: 'flex-start',
+    paddingVertical: spacing.sm,
+  },
   input: {
     flex: 1,
     color: colors.darkText,
     height: '100%',
+  },
+  inputMultiline: {
+    height: undefined,
+    textAlignVertical: 'top',
   },
   reveal: {
     color: colors.trustBlue,

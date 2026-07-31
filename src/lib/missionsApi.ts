@@ -7,6 +7,7 @@ export type Mission = {
   description: string;
   points_reward: number;
   status: 'pending' | 'completed' | null;
+  note: string | null;
 };
 
 export type MissionBadge = {
@@ -29,6 +30,11 @@ export async function getMissions(token: string) {
   return missions;
 }
 
-export function completeMission(token: string, missionId: string) {
-  return apiFetch<CompleteMissionResult>(`/missions/${missionId}/complete`, { method: 'POST', token });
+export function completeMission(token: string, missionId: string, note?: string) {
+  const trimmed = note?.trim();
+  return apiFetch<CompleteMissionResult>(`/missions/${missionId}/complete`, {
+    method: 'POST',
+    token,
+    body: trimmed ? { note: trimmed } : undefined,
+  });
 }
