@@ -10,7 +10,7 @@ import { AuthProvider } from '@/context/AuthContext';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Archivo_700Bold,
     Archivo_800ExtraBold,
     IBMPlexSans_400Regular,
@@ -20,12 +20,15 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) {
+  // Si les polices échouent à charger (mémoire faible, asset corrompu), on
+  // continue quand même avec les polices système plutôt que de rester
+  // bloqué sur le splash indéfiniment.
+  if (!fontsLoaded && !fontError) {
     return null;
   }
 
