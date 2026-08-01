@@ -142,7 +142,7 @@ export default function HomeScreen() {
         {courseInProgress ? (
           <Pressable onPress={() => router.push('/(tabs)/academy')}>
             <Card>
-              <Text style={typography.h3}>{courseInProgress.title}</Text>
+              <Text style={typography.h3} numberOfLines={1}>{courseInProgress.title}</Text>
               <Text style={[typography.body, styles.muted]}>{RESUME_MESSAGE}</Text>
             </Card>
           </Pressable>
@@ -162,7 +162,7 @@ export default function HomeScreen() {
           <Text style={[typography.bodyBold, styles.sectionTitle]}>Mission recommandée</Text>
           <Pressable onPress={() => router.push('/(tabs)/missions')}>
             <Card>
-              <Text style={typography.h3}>{recommendedMission.title}</Text>
+              <Text style={typography.h3} numberOfLines={1}>{recommendedMission.title}</Text>
               <Text style={[typography.body, styles.muted]}>{recommendedMission.description}</Text>
               <PointsBadge value={recommendedMission.points_reward} />
             </Card>
@@ -176,7 +176,7 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push({ pathname: '/kits/[kitId]', params: { kitId: recommendedKit.id } })}>
             <Card>
-              <Text style={typography.h3}>{recommendedKit.name}</Text>
+              <Text style={typography.h3} numberOfLines={1}>{recommendedKit.name}</Text>
               <Text style={[typography.data, styles.muted]}>{recommendedKit.price_xof} FCFA</Text>
             </Card>
           </Pressable>
@@ -204,8 +204,8 @@ const styles = StyleSheet.create({
   // bouton précis. Pictogramme en formes géométriques (pas d'image
   // importée) pour rester cohérent avec CourseIcon/ChevronStrip.
   kitButton: {
-    width: 44,
-    height: 44,
+    width: sizes.touchMin,
+    height: sizes.touchMin,
     borderRadius: radius.card,
     backgroundColor: colors.emergencyRed,
     alignItems: 'center',
