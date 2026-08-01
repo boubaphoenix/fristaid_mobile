@@ -106,7 +106,7 @@ export default function SosGuidanceScreen() {
 
   if (state.status === 'loading') {
     return (
-      <Screen mode="stress">
+      <Screen mode="stress" scroll>
         <EmergencyBanner phoneNumber="185" />
         <View style={styles.centered}>
           <Text style={[typography.h2, styles.whiteText]}>Préparation des consignes…</Text>
@@ -117,7 +117,7 @@ export default function SosGuidanceScreen() {
 
   if (state.status === 'offline') {
     return (
-      <Screen mode="stress">
+      <Screen mode="stress" scroll>
         <EmergencyBanner phoneNumber="185" />
         <View style={styles.spaced}>
           {OFFLINE_FALLBACK_STEPS.map((step) => (
@@ -137,7 +137,7 @@ export default function SosGuidanceScreen() {
   const currentStep = instructions.steps[stepIndex];
 
   return (
-    <Screen mode="stress">
+    <Screen mode="stress" scroll>
       <EmergencyBanner phoneNumber="185" />
 
       <View style={styles.spaced}>
