@@ -100,7 +100,7 @@ export default function CourseListScreen() {
                   <Card style={styles.courseCard}>
                     <CourseIcon type={course.category} />
                     <View style={styles.courseInfo}>
-                      <Text style={typography.h3}>{course.title}</Text>
+                      <Text style={typography.h3} numberOfLines={1}>{course.title}</Text>
                       <Text style={[typography.small, styles.muted]}>
                         {course.lessons_count} leçons · {course.duration_minutes} min
                       </Text>

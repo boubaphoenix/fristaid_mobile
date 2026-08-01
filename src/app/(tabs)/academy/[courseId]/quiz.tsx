@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
-import { colors, fonts, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { getQuiz, submitQuiz, type QuizQuestion, type QuizSubmitResult } from '@/lib/quizApi';
 
@@ -64,7 +64,7 @@ export default function QuizScreen() {
     return (
       <Screen mode="normal" scroll>
         <View style={styles.resultCentered}>
-          <Text style={[styles.scoreText, { color: passed ? colors.successGreen : colors.warningOrange }]}>
+          <Text style={[typography.scoreDisplay, { color: passed ? colors.successGreen : colors.warningOrange }]}>
             {result.score_percent}%
           </Text>
           <Text style={[typography.h2, styles.centerText]}>
@@ -226,10 +226,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.xxl,
     gap: spacing.sm,
-  },
-  scoreText: {
-    fontFamily: fonts.monoBold,
-    fontSize: 64,
   },
   centerText: {
     textAlign: 'center',

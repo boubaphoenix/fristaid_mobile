@@ -82,7 +82,7 @@ export default function MissionsListScreen() {
                 <Card minHeight={96} style={[styles.missionCard, completed && styles.missionCardCompleted]}>
                   <View style={styles.missionInfo}>
                     <View style={styles.missionTitleRow}>
-                      <Text style={typography.h3}>{mission.title}</Text>
+                      <Text style={typography.h3} numberOfLines={1}>{mission.title}</Text>
                       {completed ? <Text style={styles.checkmark}>✓</Text> : null}
                     </View>
                     <Text style={[typography.small, styles.muted]} numberOfLines={2}>

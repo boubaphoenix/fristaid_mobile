@@ -45,7 +45,7 @@ export const fonts = {
 } as const;
 
 export const typography = {
-  h1:       { fontFamily: fonts.display, fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
+  h1:       { fontFamily: fonts.display, fontSize: 32, lineHeight: 42, letterSpacing: -0.6 },
   h2:       { fontFamily: fonts.display, fontSize: 24, lineHeight: 30, letterSpacing: -0.5 },
   h3:       { fontFamily: fonts.display, fontSize: 20, lineHeight: 26, letterSpacing: -0.4 },
   body:     { fontFamily: fonts.body,     fontSize: 16, lineHeight: 24 },
@@ -54,7 +54,10 @@ export const typography = {
   caption:  { fontFamily: fonts.body,     fontSize: 12, lineHeight: 16 },
   // données vérifiables — toujours en mono
   data:     { fontFamily: fonts.mono,     fontSize: 16, lineHeight: 24 },
-  dataLarge:{ fontFamily: fonts.monoBold, fontSize: 32, lineHeight: 38 },
+  dataLarge:{ fontFamily: fonts.monoBold, fontSize: 32, lineHeight: 42 },
+  // Score final quiz/simulation — plus grand que dataLarge, isolé pour ne
+  // pas gonfler la taille des données courantes affichées ailleurs.
+  scoreDisplay: { fontFamily: fonts.monoBold, fontSize: 64, lineHeight: 76 },
 } as const;
 
 export const spacing = {

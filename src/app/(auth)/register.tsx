@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { GoogleButton, LogoMark, PointsBadge, PrimaryButton, Screen, TextField } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { registerAccount, signInWithGoogle } from '@/lib/authApi';
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
+    minHeight: sizes.touchMin,
     marginBottom: spacing.lg,
   },
   checkbox: {

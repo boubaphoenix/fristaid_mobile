@@ -42,7 +42,7 @@ export default function SosQuotaScreen() {
   }
 
   return (
-    <Screen mode="stress">
+    <Screen mode="stress" scroll>
       <EmergencyBanner phoneNumber="185" />
 
       {state.status === 'loading' ? (

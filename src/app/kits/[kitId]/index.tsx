@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton, Screen, StateView } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { type Kit, getKit } from '@/lib/kitsApi';
 
 const MAX_QUANTITY = 10;
@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   stepperButton: {
-    width: 48,
-    height: 48,
+    width: sizes.touchMin,
+    height: sizes.touchMin,
     borderRadius: radius.button,
     borderWidth: 1.5,
     borderColor: colors.trustBlue,

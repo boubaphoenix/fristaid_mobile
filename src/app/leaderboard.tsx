@@ -105,7 +105,7 @@ export default function LeaderboardScreen() {
                 <Card key={entry.user_id} style={styles.entryCard}>
                   <Text style={[typography.data, styles.entryRank]}>{entry.rank}</Text>
                   <View style={styles.entryInfo}>
-                    <Text style={typography.body}>{entry.display_name}</Text>
+                    <Text style={typography.body} numberOfLines={1}>{entry.display_name}</Text>
                     <Text style={[typography.small, styles.muted]}>{entry.title}</Text>
                   </View>
                   <Text style={[typography.data, styles.entryPoints]}>{entry.points}</Text>
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   entryRank: {
     color: colors.trustBlue,
-    width: 32,
+    width: 40,
   },
   entryInfo: {
     flex: 1,

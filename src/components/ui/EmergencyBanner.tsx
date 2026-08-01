@@ -15,9 +15,7 @@ export function EmergencyBanner({
 }: EmergencyBannerProps) {
   const content = (
     <View style={styles.banner}>
-      <Text style={[typography.bodyBold, styles.message]} numberOfLines={1}>
-        {message}
-      </Text>
+      <Text style={[typography.bodyBold, styles.message]}>{message}</Text>
       {phoneNumber ? (
         <Text style={[typography.data, styles.phone]}>{phoneNumber}</Text>
       ) : null}
@@ -40,12 +38,13 @@ export function EmergencyBanner({
 
 const styles = StyleSheet.create({
   banner: {
-    height: sizes.bannerHeight,
+    minHeight: sizes.bannerHeight,
     backgroundColor: colors.emergencyRed,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.screenPadding,
+    paddingVertical: spacing.xs,
   },
   message: {
     color: colors.white,

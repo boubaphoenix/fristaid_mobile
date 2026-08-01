@@ -69,7 +69,7 @@ export function TextField({
             accessibilityRole="button"
             accessibilityLabel={revealed ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
             onPress={() => setRevealed((prev) => !prev)}
-            hitSlop={8}>
+            hitSlop={{ top: 18, bottom: 18, left: 12, right: 12 }}>
             <Text style={[typography.small, styles.reveal]}>{revealed ? 'Masquer' : 'Afficher'}</Text>
           </Pressable>
         ) : null}
