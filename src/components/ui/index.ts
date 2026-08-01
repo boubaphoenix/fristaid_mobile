@@ -12,6 +12,10 @@ export { EmergencyBanner } from './EmergencyBanner';
 export { StateView } from './StateView';
 export { LogoMark, Wordmark, LogoLockup, type LogoVariant } from './Logo';
 export { GoogleButton } from './GoogleButton';
-export { VideoCapsule } from './VideoCapsule';
+// VideoCapsule n'est PAS ré-exporté ici volontairement : ce barrel est
+// importé par la quasi-totalité des écrans, donc un simple re-export
+// forcerait react-native-youtube-iframe (WebView) à être chargé au
+// démarrage pour tout le monde. Le seul consommateur (lesson/[lessonId])
+// l'importe directement en lazy() depuis './VideoCapsule'.
 export { PathwayStepper } from './PathwayStepper';
 export { TitleProgressCard } from './TitleProgressCard';

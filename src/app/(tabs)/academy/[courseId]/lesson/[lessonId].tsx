@@ -1,19 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Component, type ReactNode, useCallback, useEffect, useState } from 'react';
+import { Component, lazy, Suspense, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import {
-  ChevronStrip,
-  PointsBadge,
-  PrimaryButton,
-  ProgressSegments,
-  Screen,
-  StateView,
-  VideoCapsule,
-} from '@/components/ui';
+import { ChevronStrip, PointsBadge, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
+
+// Chargé à la demande : react-native-youtube-iframe (WebView) ne doit être
+// requis que quand une leçon avec vidéo est réellement ouverte, pas au
+// démarrage de l'app pour tout le monde.
+const VideoCapsule = lazy(() =>
+  import('@/components/ui/VideoCapsule').then((m) => ({ default: m.VideoCapsule })),
+);
 
 // Filet de sécurité pour les échecs *synchrones* de VideoCapsule (ex. module
 // natif WebView manquant sur un build non regénéré) — le timeout interne de
@@ -116,7 +115,9 @@ export default function LessonScreen() {
       {lesson.youtube_video_id ? (
         <View style={styles.spaced}>
           <VideoCapsuleBoundary>
-            <VideoCapsule videoId={lesson.youtube_video_id} durationSeconds={lesson.video_duration_seconds} />
+            <Suspense fallback={<View style={styles.videoLoadingBlock} />}>
+              <VideoCapsule videoId={lesson.youtube_video_id} durationSeconds={lesson.video_duration_seconds} />
+            </Suspense>
           </VideoCapsuleBoundary>
         </View>
       ) : null}
@@ -170,6 +171,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warningBg,
     borderRadius: radius.card,
     padding: spacing.md,
+  },
+  videoLoadingBlock: {
+    aspectRatio: 16 / 9,
+    backgroundColor: colors.border,
+    borderRadius: radius.card,
   },
   videoErrorText: {
     color: colors.darkText,
