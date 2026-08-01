@@ -34,7 +34,16 @@
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "AfricaSecours a besoin d'accéder à votre position uniquement lorsque vous choisissez de la partager en cas d'urgence.",
+          "locationWhenInUsePermission": "AfricaSecours a besoin d'accéder à votre position uniquement lorsque vous choisissez de la partager en cas d'urgence.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,11 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 
 import type { CourseType } from '@/components/ui/CourseIcon';
 import { EmergencyBanner, OutlineButton, PrimaryButton, ProgressSegments, Screen } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
 import { generateSosInstructions, startSosSession, type SosAnswers, type SosInstructions, type SosRole } from '@/lib/sosApi';
 
 const NON_ANSWER_PARAM_KEYS = new Set(['role', 'incident']);
@@ -47,6 +48,8 @@ export default function SosGuidanceScreen() {
   >({ status: 'loading' });
   const [stepIndex, setStepIndex] = useState(0);
   const [showCannotDoWarning, setShowCannotDoWarning] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -67,6 +70,39 @@ export default function SosGuidanceScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Confirmation obligatoire avant tout partage — jamais d'envoi
+  // automatique. La demande de permission de localisation n'a lieu que
+  // dans shareLocationNow, uniquement après ce tap explicite.
+  function handleShareLocation() {
+    setShareFeedback(null);
+    Alert.alert(LOCATION_SHARE_COPY.confirmTitle, LOCATION_SHARE_COPY.confirmMessage, [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Continuer', onPress: shareLocationNow },
+    ]);
+  }
+
+  async function shareLocationNow() {
+    setIsSharingLocation(true);
+    try {
+      const result = await requestAndGetCurrentPosition();
+      if (result.status === 'denied') {
+        Alert.alert(LOCATION_SHARE_COPY.permissionDeniedTitle, LOCATION_SHARE_COPY.permissionDenied);
+        return;
+      }
+      if (result.status === 'unavailable') {
+        Alert.alert(LOCATION_SHARE_COPY.positionUnavailableTitle, LOCATION_SHARE_COPY.positionUnavailable);
+        return;
+      }
+      const message = buildEmergencyMessage(result.latitude, result.longitude, 'long');
+      const shareResult = await Share.share({ message });
+      if (shareResult.action === Share.dismissedAction) {
+        setShareFeedback(LOCATION_SHARE_COPY.shareCancelled);
+      }
+    } finally {
+      setIsSharingLocation(false);
+    }
+  }
 
   if (state.status === 'loading') {
     return (
@@ -143,6 +179,17 @@ export default function SosGuidanceScreen() {
         stress
         style={styles.spaced}
       />
+      <OutlineButton
+        label="Partager ma position"
+        onPress={handleShareLocation}
+        stress
+        variant="brand"
+        disabled={isSharingLocation}
+        style={styles.spaced}
+      />
+      {shareFeedback ? (
+        <Text style={[typography.small, styles.whiteText, styles.spaced]}>{shareFeedback}</Text>
+      ) : null}
     </Screen>
   );
 }
