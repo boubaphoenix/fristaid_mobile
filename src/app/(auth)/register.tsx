@@ -93,7 +93,7 @@ export default function RegisterScreen() {
   );
 
   return (
-    <Screen mode="normal" scroll>
+    <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.logoHeader}>
         <LogoMark size={48} variant="onCream" />
       </View>

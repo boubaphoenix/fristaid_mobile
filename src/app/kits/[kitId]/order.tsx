@@ -91,7 +91,7 @@ export default function OrderSummaryScreen() {
   const canSubmit = Boolean(fullName && phone && commune && paymentMethod) && !isSubmitting;
 
   return (
-    <Screen mode="normal" scroll>
+    <Screen mode="normal" scroll keyboardAvoiding>
       <Text style={[typography.h2, styles.title]}>Récapitulatif</Text>
 
       <View style={styles.lineRow}>

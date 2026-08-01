@@ -121,7 +121,7 @@ export default function MissionDetailScreen() {
   const { mission, checked, note, submitting } = state;
 
   return (
-    <Screen mode="normal" scroll>
+    <Screen mode="normal" scroll keyboardAvoiding>
       <Text style={[typography.h2, styles.spaced]}>{mission.title}</Text>
 
       <View style={styles.spaced}>

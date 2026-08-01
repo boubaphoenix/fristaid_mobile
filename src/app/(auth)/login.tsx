@@ -56,7 +56,7 @@ export default function LoginScreen() {
   );
 
   return (
-    <Screen mode="normal">
+    <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.logoHeader}>
         <LogoMark size={48} variant="onCream" />
       </View>
