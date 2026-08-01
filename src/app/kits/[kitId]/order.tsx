@@ -63,7 +63,7 @@ export default function OrderSummaryScreen() {
       });
       router.push({
         pathname: '/kits/orders/[orderId]/payment',
-        params: { orderId: order.id, phone: order.delivery_phone },
+        params: { orderId: order.id, phone: order.delivery_phone, amount: String(order.total_amount_xof) },
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Impossible de créer la commande pour le moment.");

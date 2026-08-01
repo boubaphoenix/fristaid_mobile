@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PrimaryButton, Screen } from '@/components/ui';
+import { OutlineButton, PrimaryButton, Screen } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { getPaymentStatus, initiatePayment, type PaymentStatusValue } from '@/lib/paymentsApi';
@@ -14,8 +14,8 @@ const POLL_INTERVAL_MS = 1500;
 // interroge GET /payments/:orderId/status jusqu'à résolution côté serveur.
 export default function PaymentScreen() {
   const { token } = useAuth();
-  const { orderId, phone } = useLocalSearchParams<{ orderId: string; phone: string }>();
-  const [status, setStatus] = useState<PaymentStatusValue | 'starting'>('starting');
+  const { orderId, phone, amount } = useLocalSearchParams<{ orderId: string; phone: string; amount?: string }>();
+  const [status, setStatus] = useState<PaymentStatusValue | 'starting' | 'confirm'>('confirm');
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -51,11 +51,23 @@ export default function PaymentScreen() {
     }
   }, [token, orderId, phone, stopPolling]);
 
-  useEffect(() => {
-    start();
-    return stopPolling;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => stopPolling, [stopPolling]);
+
+  if (status === 'confirm') {
+    const amountLabel = amount ? `${Number(amount).toLocaleString('fr-FR')} FCFA` : 'Le montant de votre commande';
+    return (
+      <Screen mode="normal">
+        <View style={styles.centered}>
+          <Text style={[typography.h2, styles.centerText]}>Confirmer le paiement</Text>
+          <Text style={[typography.body, styles.muted, styles.centerText]}>
+            {amountLabel} {amount ? 'seront demandés' : 'sera demandé'} au numéro {phone}.
+          </Text>
+          <PrimaryButton label="Confirmer le paiement" onPress={start} style={styles.spaced} />
+          <OutlineButton label="Annuler" onPress={() => router.back()} style={styles.spaced} />
+        </View>
+      </Screen>
+    );
+  }
 
   if (status === 'starting' || status === 'processing' || status === 'pending') {
     return (
