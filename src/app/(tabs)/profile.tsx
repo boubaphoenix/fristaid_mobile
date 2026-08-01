@@ -89,7 +89,7 @@ export default function ProfileScreen() {
   const { user } = state;
 
   return (
-    <Screen mode="normal" scroll>
+    <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.avatarBlock}>
         <View style={styles.avatar}>
           <Text style={[typography.h2, styles.avatarLabel]}>{initials(user.profile.full_name, user.email)}</Text>
