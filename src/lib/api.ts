@@ -4,6 +4,12 @@
 // le code. Rien d'ici n'est un secret : c'est juste une URL publique.
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
 
+// Une EXPO_PUBLIC_API_URL mal configurée en production (http:// au lieu de
+// https://) enverrait le token d'authentification en clair sur le réseau.
+if (!__DEV__ && !API_BASE_URL.startsWith('https://')) {
+  throw new Error(`EXPO_PUBLIC_API_URL doit utiliser https:// en production (reçu : ${API_BASE_URL})`);
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
