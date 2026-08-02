@@ -19,3 +19,4 @@ export { GoogleButton } from './GoogleButton';
 // l'importe directement en lazy() depuis './VideoCapsule'.
 export { PathwayStepper } from './PathwayStepper';
 export { TitleProgressCard } from './TitleProgressCard';
+export { GestureCard } from './GestureCard';

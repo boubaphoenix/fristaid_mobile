@@ -1,21 +1,24 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import {
   Card,
   ChevronStrip,
+  GestureCard,
+  OutlineButton,
   PointsBadge,
   ProgressSegments,
   Screen,
   StateView,
 } from '@/components/ui';
+import { HOME_IMAGES } from '@/constants/homeAssets';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Course, getCourses } from '@/lib/coursesApi';
-import { type Kit, getKits } from '@/lib/kitsApi';
-import { type Mission, getMissions } from '@/lib/missionsApi';
 import { type AuthUser } from '@/lib/authApi';
+import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
 import { getProfile } from '@/lib/profileApi';
 import { type LeaderboardResponse, getWeeklyLeaderboard } from '@/lib/leaderboardApi';
 
@@ -25,8 +28,6 @@ const RESUME_MESSAGE =
 type HomeData = {
   profile: AuthUser;
   courses: Course[];
-  missions: Mission[];
-  kits: Kit[];
   leaderboard: LeaderboardResponse | null;
 };
 
@@ -35,19 +36,20 @@ export default function HomeScreen() {
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error'; message: string } | { status: 'success'; data: HomeData }
   >({ status: 'loading' });
+  const [sosHovered, setSosHovered] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
     setState({ status: 'loading' });
     try {
-      const [profile, courses, missions, kits, leaderboard] = await Promise.all([
+      const [profile, courses, leaderboard] = await Promise.all([
         getProfile(token),
         getCourses(token),
-        getMissions(token),
-        getKits(),
         getWeeklyLeaderboard(token).catch(() => null),
       ]);
-      setState({ status: 'success', data: { profile, courses, missions, kits, leaderboard } });
+      setState({ status: 'success', data: { profile, courses, leaderboard } });
     } catch {
       setState({
         status: 'error',
@@ -59,6 +61,39 @@ export default function HomeScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Confirmation obligatoire avant tout partage — même pattern que
+  // (sos)/guidance.tsx, mais déclaré localement ici : aucun état ni
+  // logique partagée avec l'écran de guidage SOS.
+  function handleShareLocationFromHome() {
+    setShareFeedback(null);
+    Alert.alert(LOCATION_SHARE_COPY.confirmTitle, LOCATION_SHARE_COPY.confirmMessage, [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Continuer', onPress: shareLocationFromHomeNow },
+    ]);
+  }
+
+  async function shareLocationFromHomeNow() {
+    setIsSharingLocation(true);
+    try {
+      const result = await requestAndGetCurrentPosition();
+      if (result.status === 'denied') {
+        Alert.alert(LOCATION_SHARE_COPY.permissionDeniedTitle, LOCATION_SHARE_COPY.permissionDenied);
+        return;
+      }
+      if (result.status === 'unavailable') {
+        Alert.alert(LOCATION_SHARE_COPY.positionUnavailableTitle, LOCATION_SHARE_COPY.positionUnavailable);
+        return;
+      }
+      const message = buildEmergencyMessage(result.latitude, result.longitude, 'long');
+      const shareResult = await Share.share({ message });
+      if (shareResult.action === Share.dismissedAction) {
+        setShareFeedback(LOCATION_SHARE_COPY.shareCancelled);
+      }
+    } finally {
+      setIsSharingLocation(false);
+    }
+  }
 
   if (state.status === 'loading') {
     return (
@@ -76,12 +111,24 @@ export default function HomeScreen() {
     );
   }
 
-  const { profile, courses, missions, kits, leaderboard } = state.data;
+  const { profile, courses, leaderboard } = state.data;
   const completedCount = courses.filter((c) => c.progress?.is_course_completed).length;
   const courseInProgress = courses.find((c) => c.progress && !c.progress.is_course_completed) ?? null;
-  const recommendedMission = missions.find((m) => m.status !== 'completed') ?? null;
-  const recommendedKit =
-    kits.find((k) => k.id === courseInProgress?.recommended_kit_id) ?? kits[0] ?? null;
+
+  // PLS n'a pas de catégorie de cours dédiée : rattaché à "malaise" (PLS
+  // est le geste enseigné pour une personne inconsciente qui respire).
+  const plsCourse = courses.find((c) => c.category === 'malaise') ?? null;
+  const reanimationCourse = courses.find((c) => c.category === 'cardiac_arrest') ?? null;
+  const hemorragieCourse = courses.find((c) => c.category === 'bleeding') ?? null;
+  const etouffementCourse = courses.find((c) => c.category === 'choking') ?? null;
+
+  function goToGesture(course: Course | null) {
+    if (course) {
+      router.push({ pathname: '/(tabs)/academy/[courseId]', params: { courseId: course.id } });
+    } else {
+      router.push('/(auth)/emergency-guide');
+    }
+  }
 
   return (
     <Screen mode="normal" scroll>
@@ -108,34 +155,33 @@ export default function HomeScreen() {
         <PointsBadge value={profile.profile.points_total} />
       </View>
 
+      <Image source={HOME_IMAGES.hero} style={[styles.hero, styles.spaced]} contentFit="cover" />
+
       <ChevronStrip style={styles.spaced} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Démarrer le guidage SOS"
         onPress={() => router.push('/(sos)/role')}
-        style={styles.sosButton}>
+        onHoverIn={() => setSosHovered(true)}
+        onHoverOut={() => setSosHovered(false)}
+        style={[styles.sosButton, sosHovered && styles.sosButtonHovered]}>
         <Text style={[typography.h1, styles.sosLabel]}>SOS</Text>
       </Pressable>
       <ChevronStrip style={styles.spaced} />
+
+      <OutlineButton
+        label="Partager ma position"
+        onPress={handleShareLocationFromHome}
+        variant="brand"
+        disabled={isSharingLocation}
+        style={styles.spaced}
+      />
+      {shareFeedback ? <Text style={[typography.small, styles.muted, styles.spaced]}>{shareFeedback}</Text> : null}
 
       <View style={styles.spaced}>
         <Text style={[typography.bodyBold, styles.sectionTitle]}>Progression globale</Text>
         <ProgressSegments count={completedCount} total={courses.length || 1} />
       </View>
-
-      {leaderboard ? (
-        <View style={styles.spaced}>
-          <Text style={[typography.bodyBold, styles.sectionTitle]}>Défi Secours de la semaine</Text>
-          <Pressable onPress={() => router.push('/leaderboard')}>
-            <Card>
-              <Text style={typography.body}>{leaderboard.me.message}</Text>
-              <Text style={[typography.data, styles.muted]}>
-                Rang {leaderboard.me.rank} cette semaine · {leaderboard.me.points} points
-              </Text>
-            </Card>
-          </Pressable>
-        </View>
-      ) : null}
 
       <View style={styles.spaced}>
         <Text style={[typography.bodyBold, styles.sectionTitle]}>Reprendre un cours</Text>
@@ -157,34 +203,47 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {recommendedMission ? (
-        <View style={styles.spaced}>
-          <Text style={[typography.bodyBold, styles.sectionTitle]}>Mission recommandée</Text>
-          <Pressable onPress={() => router.push('/(tabs)/missions')}>
-            <Card>
-              <Text style={typography.h3} numberOfLines={1}>{recommendedMission.title}</Text>
-              <Text style={[typography.body, styles.muted]}>{recommendedMission.description}</Text>
-              <PointsBadge value={recommendedMission.points_reward} />
-            </Card>
-          </Pressable>
+      <View style={styles.spaced}>
+        <Text style={[typography.bodyBold, styles.sectionTitle]}>Gestes essentiels</Text>
+        <View style={styles.gestureGrid}>
+          <GestureCard
+            title="PLS"
+            imageSource={HOME_IMAGES.pls}
+            onPress={() => goToGesture(plsCourse)}
+            style={styles.gestureCard}
+          />
+          <GestureCard
+            title="Réanimation"
+            imageSource={HOME_IMAGES.reanimation}
+            onPress={() => goToGesture(reanimationCourse)}
+            style={styles.gestureCard}
+          />
+          <GestureCard
+            title="Hémorragie"
+            imageSource={HOME_IMAGES.hemorragie}
+            onPress={() => goToGesture(hemorragieCourse)}
+            style={styles.gestureCard}
+          />
+          <GestureCard
+            title="Étouffement"
+            imageSource={HOME_IMAGES.etouffement}
+            onPress={() => goToGesture(etouffementCourse)}
+            style={styles.gestureCard}
+          />
         </View>
-      ) : null}
+      </View>
 
-      {recommendedKit ? (
-        <View style={styles.spaced}>
-          <Text style={[typography.bodyBold, styles.sectionTitle]}>Kit recommandé</Text>
-          <Pressable
-            onPress={() => router.push({ pathname: '/kits/[kitId]', params: { kitId: recommendedKit.id } })}>
-            <Card>
-              <Text style={typography.h3} numberOfLines={1}>{recommendedKit.name}</Text>
-              <Text style={[typography.data, styles.muted]}>{recommendedKit.price_xof} FCFA</Text>
-            </Card>
-          </Pressable>
-        </View>
+      {leaderboard ? (
+        <Pressable style={[styles.spaced, styles.linkRow]} onPress={() => router.push('/leaderboard')}>
+          <Text style={typography.bodyBold}>Défi Secours de la semaine</Text>
+          <Text style={[typography.small, styles.muted]}>
+            Rang {leaderboard.me.rank} · {leaderboard.me.points} pts
+          </Text>
+        </Pressable>
       ) : null}
 
       <Pressable
-        style={[styles.spaced, styles.passportRow]}
+        style={[styles.spaced, styles.linkRow]}
         accessibilityRole="button"
         onPress={() => router.push('/passport')}>
         <Text style={typography.bodyBold}>Mon Passeport</Text>
@@ -262,14 +321,29 @@ const styles = StyleSheet.create({
   spaced: {
     marginTop: spacing.lg,
   },
+  hero: {
+    width: '100%',
+    height: 180,
+    borderRadius: radius.card,
+  },
   sosButton: {
     alignSelf: 'center',
     width: sizes.sosButtonHeight,
     height: sizes.sosButtonHeight,
-    borderRadius: radius.card,
+    borderRadius: sizes.sosButtonHeight / 2,
     backgroundColor: colors.emergencyRed,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Web only (onHoverIn/onHoverOut never fire on touch) : léger
+  // agrandissement + halo rouge pour donner un retour visuel au survol.
+  sosButtonHovered: {
+    transform: [{ scale: 1.06 }],
+    shadowColor: colors.emergencyRed,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
+    elevation: 8,
   },
   sosLabel: {
     color: colors.white,
@@ -282,7 +356,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     marginBottom: spacing.xs,
   },
-  passportRow: {
+  gestureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  gestureCard: {
+    flexBasis: '48%',
+    flexGrow: 1,
+  },
+  linkRow: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.card,
