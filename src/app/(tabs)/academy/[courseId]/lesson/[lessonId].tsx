@@ -2,9 +2,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Component, lazy, Suspense, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { ChevronStrip, PointsBadge, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
+import {
+  ChevronStrip,
+  LessonStepCard,
+  PointsBadge,
+  PrimaryButton,
+  ProgressSegments,
+  ResponsibilityNote,
+  Screen,
+  StateView,
+} from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { LESSON_STEP_IMAGES } from '@/constants/lessonStepImages';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
 
 // Chargé à la demande : react-native-youtube-iframe (WebView) ne doit être
@@ -122,6 +132,27 @@ export default function LessonScreen() {
         </View>
       ) : null}
 
+      {lesson.steps.length > 0 ? (
+        <View style={styles.spaced}>
+          {lesson.steps.map((step, i) => (
+            <LessonStepCard
+              key={step.id}
+              index={i + 1}
+              total={lesson.steps.length}
+              title={step.title}
+              imageSource={LESSON_STEP_IMAGES[step.image_key]}
+              imageAlt={step.image_alt}
+              description={step.description}
+              warningText={step.warning_text}
+              style={i > 0 ? styles.stepSpacing : undefined}
+            />
+          ))}
+          <View style={styles.stepSpacing}>
+            <ResponsibilityNote text="AFRICASECOUR aide à apprendre les bons réflexes, mais ne remplace jamais les secours, un médecin ou une formation officielle." />
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.spaced}>
         <ChevronStrip />
         <View style={styles.retainBlock}>
@@ -158,6 +189,9 @@ const styles = StyleSheet.create({
   },
   spaced: {
     marginTop: spacing.lg,
+  },
+  stepSpacing: {
+    marginTop: spacing.sm,
   },
   retainBlock: {
     backgroundColor: colors.darkText,
