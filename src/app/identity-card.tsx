@@ -5,8 +5,8 @@ import { useCallback, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
-import { Card, ChevronStrip, LogoMark, OutlineButton, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView, Wordmark } from '@/components/ui';
-import { brand, colors, spacing, typography } from '@/constants/theme';
+import { ChevronStrip, LogoMark, OutlineButton, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView, Wordmark } from '@/components/ui';
+import { brand, colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { confirmAlert } from '@/lib/confirmAlert';
 import { saveIdentityCardImage } from '@/lib/identityCardDownload';
@@ -179,45 +179,49 @@ export default function IdentityCardScreen() {
       {state.status === 'success' ? (
         <>
           <View ref={cardRef} collapsable={false}>
-            <Card style={styles.cardPreview}>
+            <View style={styles.cardFrame}>
               <View style={styles.cardHeaderBar}>
-                <LogoMark size={32} variant="onForest" />
-                <Wordmark size={14} variant="onForest" />
+                <View style={styles.cardHeaderBrand}>
+                  <LogoMark size={24} variant="onForest" />
+                  <Wordmark size={13} variant="onForest" />
+                </View>
+                <LogoMark size={44} variant="onForest" />
               </View>
 
-              <View style={styles.cardBody}>
-                <View style={styles.avatarBlock}>
+              <View style={styles.cardRow}>
+                <View style={styles.photoColumn}>
                   {state.card.avatar_url ? (
-                    <Image source={{ uri: state.card.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+                    <Image source={{ uri: state.card.avatar_url }} style={styles.photoImage} contentFit="cover" />
                   ) : (
-                    <View style={styles.avatarFallback}>
-                      <Text style={[typography.h3, styles.avatarLabel]}>
+                    <View style={styles.photoFallback}>
+                      <Text style={[typography.h2, styles.photoFallbackLabel]}>
                         {initials(state.card.display_name, state.card.display_name)}
                       </Text>
                     </View>
                   )}
-                  <Text style={[typography.h3, styles.spaced]}>{state.card.display_name}</Text>
+                </View>
+
+                <View style={styles.infoColumn}>
+                  <Text style={[typography.h3, styles.nameText]} numberOfLines={1}>
+                    {state.card.display_name}
+                  </Text>
                   <Text style={[typography.bodyBold, styles.titleText]}>
                     {state.card.title} · Niveau {state.card.level}
                   </Text>
                   <Text style={[typography.caption, styles.muted, styles.memberSince]}>
                     Membre depuis le {new Date(state.card.member_since).toLocaleDateString('fr-FR')}
                   </Text>
-                </View>
 
-                <View style={styles.statsRow}>
-                  <PointsBadge value={state.card.points_total} size="large" />
-                </View>
-                <Text style={[typography.body, styles.statsLine]}>
-                  {state.card.completed_courses} cours terminés • {state.card.badges_count} badges obtenus
-                </Text>
-                {state.card.weekly_rank ? (
-                  <Text style={[typography.body, styles.statsLine]}>Rang hebdomadaire #{state.card.weekly_rank}</Text>
-                ) : null}
+                  <PointsBadge value={state.card.points_total} />
 
-                <Text style={[typography.caption, styles.muted, styles.generatedAt]}>
-                  Générée le {new Date(state.card.generated_at).toLocaleDateString('fr-FR')}
-                </Text>
+                  <Text style={[typography.small, styles.statsLine]}>
+                    {state.card.completed_courses} cours · {state.card.badges_count} badges · {state.card.completed_circuits}/
+                    {state.card.required_circuits} circuits
+                  </Text>
+                  {state.card.weekly_rank ? (
+                    <Text style={[typography.small, styles.statsLine]}>Rang hebdomadaire #{state.card.weekly_rank}</Text>
+                  ) : null}
+                </View>
               </View>
 
               <View style={styles.cardFooterBar}>
@@ -228,7 +232,7 @@ export default function IdentityCardScreen() {
                   </View>
                 ))}
               </View>
-            </Card>
+            </View>
           </View>
 
           <ResponsibilityNote text={IDENTITY_CARD_SHARE_COPY.disclaimer} />
@@ -331,42 +335,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
   },
-  cardPreview: {
+  cardFrame: {
     marginTop: spacing.lg,
-    padding: 0,
+    borderWidth: 2,
+    borderColor: brand.forest,
+    borderRadius: 16,
     overflow: 'hidden',
+    backgroundColor: colors.white,
   },
   cardHeaderBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
     backgroundColor: brand.forest,
     paddingVertical: spacing.sm,
-  },
-  cardBody: {
-    alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
   },
-  avatarBlock: {
+  cardHeaderBrand: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs,
   },
-  avatarImage: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  cardRow: {
+    flexDirection: 'row',
+    padding: spacing.md,
+    gap: spacing.md,
   },
-  avatarFallback: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.trustBlue,
+  photoColumn: {
+    width: '32%',
+  },
+  photoImage: {
+    width: '100%',
+    aspectRatio: 0.75,
+    borderRadius: radius.card,
+  },
+  photoFallback: {
+    width: '100%',
+    aspectRatio: 0.75,
+    borderRadius: radius.card,
+    backgroundColor: brand.forest,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarLabel: {
+  photoFallbackLabel: {
     color: colors.white,
+  },
+  infoColumn: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  nameText: {
+    color: colors.darkText,
   },
   titleText: {
     color: colors.darkText,
@@ -374,17 +393,11 @@ const styles = StyleSheet.create({
   },
   memberSince: {
     marginTop: spacing.xs,
-  },
-  statsRow: {
-    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
   statsLine: {
     color: colors.darkText,
     marginTop: spacing.sm,
-    textAlign: 'center',
-  },
-  generatedAt: {
-    marginTop: spacing.md,
   },
   cardFooterBar: {
     flexDirection: 'row',
