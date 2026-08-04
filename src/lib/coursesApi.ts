@@ -38,6 +38,15 @@ export type Course = {
   progress: CourseProgress | null;
 };
 
+export type LessonStep = {
+  id: string;
+  title: string;
+  description: string;
+  image_key: string;
+  image_alt: string;
+  warning_text: string | null;
+};
+
 export type Lesson = {
   id: string;
   title: string;
@@ -48,6 +57,7 @@ export type Lesson = {
   sort_order: number;
   is_required: boolean;
   completed: boolean;
+  steps: LessonStep[];
 };
 
 export type CompleteLessonResult = {

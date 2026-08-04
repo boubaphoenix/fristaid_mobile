@@ -20,3 +20,4 @@ export { GoogleButton } from './GoogleButton';
 export { PathwayStepper } from './PathwayStepper';
 export { TitleProgressCard } from './TitleProgressCard';
 export { GestureCard } from './GestureCard';
+export { LessonStepCard } from './LessonStepCard';
