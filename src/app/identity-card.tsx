@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
-import { ChevronStrip, LogoMark, OutlineButton, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView, Wordmark } from '@/components/ui';
+import { ChevronStrip, LogoMark, LogoSeal, OutlineButton, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView, Wordmark } from '@/components/ui';
 import { brand, colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { confirmAlert } from '@/lib/confirmAlert';
@@ -185,7 +185,7 @@ export default function IdentityCardScreen() {
                   <LogoMark size={24} variant="onForest" />
                   <Wordmark size={13} variant="onForest" />
                 </View>
-                <LogoMark size={44} variant="onForest" />
+                <LogoSeal size={64} />
               </View>
 
               <View style={styles.cardRow}>
@@ -202,30 +202,30 @@ export default function IdentityCardScreen() {
                 </View>
 
                 <View style={styles.infoColumn}>
-                  <Text style={[typography.caption, styles.fieldLabel]}>NOM</Text>
-                  <Text style={[typography.h3, styles.nameText]} numberOfLines={1}>
-                    {state.card.display_name}
-                  </Text>
+                  <View style={styles.fieldRow}>
+                    <View style={styles.fieldHalf}>
+                      <Text style={[typography.caption, styles.fieldLabel]}>NOM</Text>
+                      <Text style={[typography.h3, styles.nameTextVivid]} numberOfLines={1}>
+                        {state.card.display_name}
+                      </Text>
+                    </View>
+                    <View style={styles.fieldHalfEnd}>
+                      <Text style={[typography.caption, styles.fieldLabel]}>RANG</Text>
+                      <Text style={[typography.bodyBold, styles.fieldValue, styles.fieldValueEnd]}>
+                        {state.card.weekly_rank ? `#${state.card.weekly_rank}` : '—'}
+                      </Text>
+                    </View>
+                  </View>
 
                   <Text style={[typography.caption, styles.fieldLabel, styles.fieldSpaced]}>DATE D'ADHÉSION</Text>
                   <Text style={[typography.bodyBold, styles.fieldValue]}>
                     {new Date(state.card.member_since).toLocaleDateString('fr-FR')}
                   </Text>
 
-                  <View style={[styles.fieldRow, styles.fieldSpaced]}>
-                    <View style={styles.fieldHalf}>
-                      <Text style={[typography.caption, styles.fieldLabel]}>NIVEAU</Text>
-                      <Text style={[typography.bodyBold, styles.fieldValue]} numberOfLines={1}>
-                        {state.card.title}
-                      </Text>
-                    </View>
-                    <View style={styles.fieldHalf}>
-                      <Text style={[typography.caption, styles.fieldLabel]}>RANG</Text>
-                      <Text style={[typography.bodyBold, styles.fieldValue]}>
-                        {state.card.weekly_rank ? `#${state.card.weekly_rank}` : '—'}
-                      </Text>
-                    </View>
-                  </View>
+                  <Text style={[typography.caption, styles.fieldLabel, styles.fieldSpaced]}>STATUT</Text>
+                  <Text style={[typography.bodyBold, styles.fieldValue]} numberOfLines={1}>
+                    {state.card.title}
+                  </Text>
 
                   <View style={[styles.fieldRow, styles.fieldSpaced]}>
                     <PointsBadge value={state.card.points_total} />
@@ -397,16 +397,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  nameText: {
-    color: colors.darkText,
+  nameTextVivid: {
+    color: brand.terracotta,
   },
   fieldLabel: {
-    color: brand.terracotta,
+    color: colors.mutedText,
     letterSpacing: 0.5,
   },
   fieldValue: {
-    color: colors.darkText,
+    color: brand.terracotta,
     marginTop: 2,
+  },
+  fieldValueEnd: {
+    textAlign: 'right',
   },
   fieldSpaced: {
     marginTop: spacing.sm,
@@ -418,6 +421,9 @@ const styles = StyleSheet.create({
   },
   fieldHalf: {
     flex: 1,
+  },
+  fieldHalfEnd: {
+    alignItems: 'flex-end',
   },
   statsLine: {
     color: colors.darkText,

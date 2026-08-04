@@ -10,7 +10,7 @@ export { PointsBadge } from './PointsBadge';
 export { ResponsibilityNote } from './ResponsibilityNote';
 export { EmergencyBanner } from './EmergencyBanner';
 export { StateView } from './StateView';
-export { LogoMark, Wordmark, LogoLockup, type LogoVariant } from './Logo';
+export { LogoMark, LogoSeal, Wordmark, LogoLockup, type LogoVariant } from './Logo';
 export { GoogleButton } from './GoogleButton';
 // VideoCapsule n'est PAS ré-exporté ici volontairement : ce barrel est
 // importé par la quasi-totalité des écrans, donc un simple re-export
