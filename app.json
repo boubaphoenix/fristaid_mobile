@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.africasecours.fristaidmobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +43,20 @@
           "locationWhenInUsePermission": "AfricaSecours a besoin d'accéder à votre position uniquement lorsque vous choisissez de la partager en cas d'urgence.",
           "isAndroidBackgroundLocationEnabled": false,
           "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AfricaSecours a besoin d'accéder à vos photos pour définir votre photo de profil."
+        }
+      ],
+      "expo-sharing",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "AfricaSecours a besoin d'accéder à vos photos pour enregistrer votre carte d'identité.",
+          "savePhotosPermission": "AfricaSecours a besoin d'enregistrer votre carte d'identité dans vos photos."
         }
       ]
     ],

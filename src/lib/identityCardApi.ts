@@ -11,6 +11,11 @@ export type IdentityCard = {
   weekly_rank: number | null;
   member_since: string;
   generated_at: string;
+  completed_circuits: number;
+  required_circuits: number;
+  can_share: boolean;
+  can_download: boolean;
+  unlock_message: string;
 };
 
 export function getIdentityCard(token: string) {
