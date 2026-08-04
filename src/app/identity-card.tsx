@@ -224,7 +224,7 @@ export default function IdentityCardScreen() {
 
                   <Text style={[typography.caption, styles.fieldLabel, styles.fieldSpaced]}>STATUT</Text>
                   <Text style={[typography.bodyBold, styles.fieldValue]} numberOfLines={1}>
-                    {state.card.title}
+                    {state.card.title} - Niveau {state.card.level}
                   </Text>
 
                   <View style={[styles.fieldRow, styles.fieldSpaced]}>
