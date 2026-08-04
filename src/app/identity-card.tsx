@@ -202,25 +202,38 @@ export default function IdentityCardScreen() {
                 </View>
 
                 <View style={styles.infoColumn}>
+                  <Text style={[typography.caption, styles.fieldLabel]}>NOM</Text>
                   <Text style={[typography.h3, styles.nameText]} numberOfLines={1}>
                     {state.card.display_name}
                   </Text>
-                  <Text style={[typography.bodyBold, styles.titleText]}>
-                    {state.card.title} · Niveau {state.card.level}
-                  </Text>
-                  <Text style={[typography.caption, styles.muted, styles.memberSince]}>
-                    Membre depuis le {new Date(state.card.member_since).toLocaleDateString('fr-FR')}
+
+                  <Text style={[typography.caption, styles.fieldLabel, styles.fieldSpaced]}>DATE D'ADHÉSION</Text>
+                  <Text style={[typography.bodyBold, styles.fieldValue]}>
+                    {new Date(state.card.member_since).toLocaleDateString('fr-FR')}
                   </Text>
 
-                  <PointsBadge value={state.card.points_total} />
+                  <View style={[styles.fieldRow, styles.fieldSpaced]}>
+                    <View style={styles.fieldHalf}>
+                      <Text style={[typography.caption, styles.fieldLabel]}>NIVEAU</Text>
+                      <Text style={[typography.bodyBold, styles.fieldValue]} numberOfLines={1}>
+                        {state.card.title}
+                      </Text>
+                    </View>
+                    <View style={styles.fieldHalf}>
+                      <Text style={[typography.caption, styles.fieldLabel]}>RANG</Text>
+                      <Text style={[typography.bodyBold, styles.fieldValue]}>
+                        {state.card.weekly_rank ? `#${state.card.weekly_rank}` : '—'}
+                      </Text>
+                    </View>
+                  </View>
 
-                  <Text style={[typography.small, styles.statsLine]}>
-                    {state.card.completed_courses} cours · {state.card.badges_count} badges · {state.card.completed_circuits}/
-                    {state.card.required_circuits} circuits
-                  </Text>
-                  {state.card.weekly_rank ? (
-                    <Text style={[typography.small, styles.statsLine]}>Rang hebdomadaire #{state.card.weekly_rank}</Text>
-                  ) : null}
+                  <View style={[styles.fieldRow, styles.fieldSpaced]}>
+                    <PointsBadge value={state.card.points_total} />
+                    <Text style={[typography.small, styles.statsLine]}>
+                      {state.card.completed_courses} cours · {state.card.badges_count} badges ·{' '}
+                      {state.card.completed_circuits}/{state.card.required_circuits} circuits
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -362,7 +375,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   photoColumn: {
-    width: '32%',
+    width: '26%',
   },
   photoImage: {
     width: '100%',
@@ -387,17 +400,28 @@ const styles = StyleSheet.create({
   nameText: {
     color: colors.darkText,
   },
-  titleText: {
-    color: colors.darkText,
-    marginTop: spacing.xs,
+  fieldLabel: {
+    color: brand.terracotta,
+    letterSpacing: 0.5,
   },
-  memberSince: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+  fieldValue: {
+    color: colors.darkText,
+    marginTop: 2,
+  },
+  fieldSpaced: {
+    marginTop: spacing.sm,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  fieldHalf: {
+    flex: 1,
   },
   statsLine: {
     color: colors.darkText,
-    marginTop: spacing.sm,
+    flexShrink: 1,
   },
   cardFooterBar: {
     flexDirection: 'row',
