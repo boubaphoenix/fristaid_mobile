@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   Card,
@@ -18,7 +18,9 @@ import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Course, getCourses } from '@/lib/coursesApi';
 import { type AuthUser } from '@/lib/authApi';
+import { confirmAlert } from '@/lib/confirmAlert';
 import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
+import { shareMessage } from '@/lib/share';
 import { getProfile } from '@/lib/profileApi';
 import { type LeaderboardResponse, getWeeklyLeaderboard } from '@/lib/leaderboardApi';
 
@@ -67,7 +69,7 @@ export default function HomeScreen() {
   // logique partagée avec l'écran de guidage SOS.
   function handleShareLocationFromHome() {
     setShareFeedback(null);
-    Alert.alert(LOCATION_SHARE_COPY.confirmTitle, LOCATION_SHARE_COPY.confirmMessage, [
+    confirmAlert(LOCATION_SHARE_COPY.confirmTitle, LOCATION_SHARE_COPY.confirmMessage, [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Continuer', onPress: shareLocationFromHomeNow },
     ]);
@@ -78,16 +80,16 @@ export default function HomeScreen() {
     try {
       const result = await requestAndGetCurrentPosition();
       if (result.status === 'denied') {
-        Alert.alert(LOCATION_SHARE_COPY.permissionDeniedTitle, LOCATION_SHARE_COPY.permissionDenied);
+        confirmAlert(LOCATION_SHARE_COPY.permissionDeniedTitle, LOCATION_SHARE_COPY.permissionDenied);
         return;
       }
       if (result.status === 'unavailable') {
-        Alert.alert(LOCATION_SHARE_COPY.positionUnavailableTitle, LOCATION_SHARE_COPY.positionUnavailable);
+        confirmAlert(LOCATION_SHARE_COPY.positionUnavailableTitle, LOCATION_SHARE_COPY.positionUnavailable);
         return;
       }
       const message = buildEmergencyMessage(result.latitude, result.longitude, 'long');
-      const shareResult = await Share.share({ message });
-      if (shareResult.action === Share.dismissedAction) {
+      const outcome = await shareMessage(message);
+      if (outcome === 'cancelled') {
         setShareFeedback(LOCATION_SHARE_COPY.shareCancelled);
       }
     } finally {

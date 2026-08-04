@@ -1,15 +1,16 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { EmergencyBanner, Screen } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { ROLES } from '@/constants/sosContent';
+import { confirmAlert } from '@/lib/confirmAlert';
 
 // Écran 11 — choix du rôle (Mode Stress). Une seule action par écran :
 // sélectionner un rôle pousse directement vers le choix de l'incident.
 export default function SosRoleScreen() {
   function confirmExit() {
-    Alert.alert(
+    confirmAlert(
       'Quitter le guidage SOS ?',
       'Vous perdrez votre progression dans ce guidage.',
       [

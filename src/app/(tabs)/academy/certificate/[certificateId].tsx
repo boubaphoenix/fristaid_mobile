@@ -1,11 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { ChevronStrip, OutlineButton, PrimaryButton, ResponsibilityNote, Screen, StateView } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Certificate, getCertificate } from '@/lib/certificatesApi';
+import { shareMessage } from '@/lib/share';
 
 // Écran 10 — attestation pédagogique.
 export default function CertificateScreen() {
@@ -78,9 +79,9 @@ export default function CertificateScreen() {
       <PrimaryButton
         label="Partager"
         onPress={() =>
-          Share.share({
-            message: `J'ai obtenu l'attestation "${certificate.course_title}" (${certificate.score}%) sur AFRICASECOUR — N° ${certificate.certificate_number}.`,
-          })
+          shareMessage(
+            `J'ai obtenu l'attestation "${certificate.course_title}" (${certificate.score}%) sur AFRICASECOUR — N° ${certificate.certificate_number}.`,
+          )
         }
         style={styles.spaced}
       />
