@@ -3,12 +3,22 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
-import { Card, ChevronStrip, LogoLockup, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/constants/theme';
+import { Card, ChevronStrip, LogoMark, PointsBadge, PrimaryButton, ResponsibilityNote, Screen, StateView, Wordmark } from '@/components/ui';
+import { brand, colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type IdentityCard, getIdentityCard } from '@/lib/identityCardApi';
 import { IDENTITY_CARD_SHARE_COPY, buildIdentityCardMessage } from '@/lib/identityCardShare';
 import { initials } from '@/lib/initials';
+
+// Bandeau décoratif statique — identique pour tous les utilisateurs,
+// aucune donnée personnelle. Volontairement en emoji + texte plutôt
+// qu'en icônes SVG sur mesure (pas de dépendance supplémentaire).
+const CARD_VALUES = [
+  { emoji: '❤️', label: 'Apprendre' },
+  { emoji: '🛡️', label: 'Agir' },
+  { emoji: '👥', label: 'Protéger' },
+  { emoji: '🎖️', label: 'Engagé' },
+] as const;
 
 // Écran atteint uniquement depuis Profil : même patron que passport.tsx
 // (pas de Stack dédié, simple bouton retour).
@@ -78,38 +88,54 @@ export default function IdentityCardScreen() {
       {state.status === 'success' ? (
         <>
           <Card style={styles.cardPreview}>
-            <View style={styles.avatarBlock}>
-              {state.card.avatar_url ? (
-                <Image source={{ uri: state.card.avatar_url }} style={styles.avatarImage} contentFit="cover" />
-              ) : (
-                <View style={styles.avatarFallback}>
-                  <Text style={[typography.h3, styles.avatarLabel]}>
-                    {initials(state.card.display_name, state.card.display_name)}
-                  </Text>
-                </View>
-              )}
-              <Text style={[typography.h3, styles.spaced]}>{state.card.display_name}</Text>
-              <Text style={[typography.bodyBold, styles.titleText]}>
-                {state.card.title} · Niveau {state.card.level}
+            <View style={styles.cardHeaderBar}>
+              <LogoMark size={32} variant="onForest" />
+              <Wordmark size={14} variant="onForest" />
+            </View>
+
+            <View style={styles.cardBody}>
+              <View style={styles.avatarBlock}>
+                {state.card.avatar_url ? (
+                  <Image source={{ uri: state.card.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+                ) : (
+                  <View style={styles.avatarFallback}>
+                    <Text style={[typography.h3, styles.avatarLabel]}>
+                      {initials(state.card.display_name, state.card.display_name)}
+                    </Text>
+                  </View>
+                )}
+                <Text style={[typography.h3, styles.spaced]}>{state.card.display_name}</Text>
+                <Text style={[typography.bodyBold, styles.titleText]}>
+                  {state.card.title} · Niveau {state.card.level}
+                </Text>
+                <Text style={[typography.caption, styles.muted, styles.memberSince]}>
+                  Membre depuis le {new Date(state.card.member_since).toLocaleDateString('fr-FR')}
+                </Text>
+              </View>
+
+              <View style={styles.statsRow}>
+                <PointsBadge value={state.card.points_total} size="large" />
+              </View>
+              <Text style={[typography.body, styles.statsLine]}>
+                {state.card.completed_courses} cours terminés • {state.card.badges_count} badges obtenus
+              </Text>
+              {state.card.weekly_rank ? (
+                <Text style={[typography.body, styles.statsLine]}>Rang hebdomadaire #{state.card.weekly_rank}</Text>
+              ) : null}
+
+              <Text style={[typography.caption, styles.muted, styles.generatedAt]}>
+                Générée le {new Date(state.card.generated_at).toLocaleDateString('fr-FR')}
               </Text>
             </View>
 
-            <View style={styles.statsRow}>
-              <PointsBadge value={state.card.points_total} size="large" />
+            <View style={styles.cardFooterBar}>
+              {CARD_VALUES.map((v) => (
+                <View key={v.label} style={styles.valueChip}>
+                  <Text style={styles.valueEmoji}>{v.emoji}</Text>
+                  <Text style={[typography.caption, styles.valueLabel]}>{v.label}</Text>
+                </View>
+              ))}
             </View>
-            <Text style={[typography.body, styles.statsLine]}>
-              {state.card.completed_courses} cours terminés • {state.card.badges_count} badges obtenus
-            </Text>
-            {state.card.weekly_rank ? (
-              <Text style={[typography.body, styles.statsLine]}>Rang hebdomadaire #{state.card.weekly_rank}</Text>
-            ) : null}
-
-            <View style={styles.logoBlock}>
-              <LogoLockup markSize={48} wordmarkSize={16} tagline={false} />
-            </View>
-            <Text style={[typography.caption, styles.muted, styles.generatedAt]}>
-              Générée le {new Date(state.card.generated_at).toLocaleDateString('fr-FR')}
-            </Text>
           </Card>
 
           <ResponsibilityNote text={IDENTITY_CARD_SHARE_COPY.disclaimer} />
@@ -148,8 +174,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   cardPreview: {
-    alignItems: 'center',
     marginTop: spacing.lg,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  cardHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: brand.forest,
+    paddingVertical: spacing.sm,
+  },
+  cardBody: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
   },
   avatarBlock: {
     alignItems: 'center',
@@ -174,6 +214,9 @@ const styles = StyleSheet.create({
     color: colors.darkText,
     marginTop: spacing.xs,
   },
+  memberSince: {
+    marginTop: spacing.xs,
+  },
   statsRow: {
     marginTop: spacing.md,
   },
@@ -182,10 +225,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     textAlign: 'center',
   },
-  logoBlock: {
-    marginTop: spacing.lg,
-  },
   generatedAt: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
+  },
+  cardFooterBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: brand.terracotta,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  valueChip: {
+    alignItems: 'center',
+  },
+  valueEmoji: {
+    fontSize: 16,
+  },
+  valueLabel: {
+    color: colors.white,
+    marginTop: 2,
   },
 });

@@ -9,6 +9,7 @@ export type IdentityCard = {
   badges_count: number;
   points_total: number;
   weekly_rank: number | null;
+  member_since: string;
   generated_at: string;
 };
 
