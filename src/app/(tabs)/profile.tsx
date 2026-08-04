@@ -139,6 +139,14 @@ export default function ProfileScreen() {
         <Text style={[typography.small, styles.muted]}>Voir mon rang et ma progression</Text>
       </Pressable>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/identity-card')}
+        style={styles.leaderboardRow}>
+        <Text style={typography.bodyBold}>Carte d'identité AFRICASECOUR</Text>
+        <Text style={[typography.small, styles.muted]}>Partager ma progression</Text>
+      </Pressable>
+
       <OutlineButton label="Se déconnecter" onPress={signOut} variant="danger" style={styles.spacedLg} />
     </Screen>
   );
