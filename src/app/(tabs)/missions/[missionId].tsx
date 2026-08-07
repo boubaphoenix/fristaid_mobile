@@ -113,7 +113,15 @@ export default function MissionDetailScreen() {
               : 'Cette mission fait déjà partie de votre passeport.'}
           </Text>
         </View>
-        <PrimaryButton label="Retour aux missions" onPress={() => router.replace('/(tabs)/missions')} style={styles.spaced} />
+        <PrimaryButton
+          label="Retour au cours"
+          onPress={() =>
+            state.mission.course_id
+              ? router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId: state.mission.course_id } })
+              : router.replace('/(tabs)/missions')
+          }
+          style={styles.spaced}
+        />
       </Screen>
     );
   }
