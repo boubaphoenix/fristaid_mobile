@@ -4,10 +4,9 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { EmergencyBanner, OutlineButton, PrimaryButton, ProgressSegments, Screen } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
-import { QUESTIONS_BY_INCIDENT, VITAL_INCIDENTS } from '@/constants/sosContent';
+import { QUESTIONS_BY_INCIDENT, VITAL_INCIDENTS, type IncidentType } from '@/constants/sosContent';
 import { useAuth } from '@/context/AuthContext';
 import { getSosQuota, type SosRole } from '@/lib/sosApi';
-import type { CourseType } from '@/components/ui/CourseIcon';
 
 type AnswerValue = 'true' | 'false' | 'unknown';
 
@@ -17,7 +16,7 @@ export default function SosQuestionScreen() {
   const { token } = useAuth();
   const params = useLocalSearchParams<{ role?: string; incident?: string }>();
   const role = (params.role as SosRole | undefined) ?? 'witness';
-  const incident = (params.incident as CourseType | undefined) ?? 'malaise';
+  const incident = (params.incident as IncidentType | undefined) ?? 'malaise';
   const questions = QUESTIONS_BY_INCIDENT[incident] ?? [];
 
   const [qIndex, setQIndex] = useState(0);

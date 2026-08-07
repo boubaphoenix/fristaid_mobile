@@ -2,9 +2,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { CourseType } from '@/components/ui/CourseIcon';
 import { EmergencyBanner, OutlineButton, PrimaryButton, ProgressSegments, Screen } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
+import type { IncidentType } from '@/constants/sosContent';
 import { useAuth } from '@/context/AuthContext';
 import { confirmAlert } from '@/lib/confirmAlert';
 import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
@@ -41,7 +41,7 @@ export default function SosGuidanceScreen() {
   // être testé en isolation (voir plan Vague 1, remarque écran 14).
   const params = useLocalSearchParams<{ role?: string; incident?: string }>();
   const role = (params.role as SosRole | undefined) ?? 'witness';
-  const incidentType = (params.incident as CourseType | undefined) ?? 'bleeding';
+  const incidentType = (params.incident as IncidentType | undefined) ?? 'bleeding';
 
   const [state, setState] = useState<
     | { status: 'loading' }

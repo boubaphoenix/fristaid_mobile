@@ -4,6 +4,11 @@ import type { SosRole } from '@/lib/sosApi';
 // Contenu statique du parcours SOS (écrans 11-13) — PRD §11.9 (rôles),
 // §11.10 (identifiants techniques des incidents) et §11.11 (questions
 // qui alimentent les règles médicales spécifiques, ex. malaise).
+//
+// IncidentType exclut les catégories de cours qui ne sont pas des incidents
+// sélectionnables dans le parcours SOS (ex. recovery_position, une leçon de
+// technique référencée depuis malaise/drowning, pas un "que se passe-t-il ?").
+export type IncidentType = Exclude<CourseType, 'recovery_position'>;
 
 export const ROLES: { value: SosRole; label: string }[] = [
   { value: 'witness', label: 'Je suis témoin' },
@@ -12,9 +17,12 @@ export const ROLES: { value: SosRole; label: string }[] = [
   { value: 'trained', label: 'Je suis secouriste / personnel formé' },
 ];
 
+// Type CourseType (pas IncidentType) : utilisé aussi côté Académie
+// ([courseId]/index.tsx) pour colorer l'en-tête de n'importe quel cours,
+// pas seulement les 8 incidents sélectionnables dans le parcours SOS.
 export const VITAL_INCIDENTS: ReadonlySet<CourseType> = new Set(['bleeding', 'cardiac_arrest', 'drowning']);
 
-export const INCIDENTS: { value: CourseType; label: string }[] = [
+export const INCIDENTS: { value: IncidentType; label: string }[] = [
   { value: 'road_accident', label: 'Accident de circulation' },
   { value: 'bleeding', label: 'Hémorragie' },
   { value: 'choking', label: 'Étouffement' },
@@ -30,7 +38,7 @@ export type SosQuestion = { key: string; question: string };
 // Les clés du malaise (conscious, breathing_difficulty, abnormal_breathing,
 // dangerous_environment) doivent rester identiques au backend
 // (src/ai/scenarios.ts côté API) : elles pilotent la règle §11.11.
-export const QUESTIONS_BY_INCIDENT: Record<CourseType, SosQuestion[]> = {
+export const QUESTIONS_BY_INCIDENT: Record<IncidentType, SosQuestion[]> = {
   road_accident: [{ key: 'scene_secured', question: 'La zone est-elle sécurisée (circulation, danger) ?' }],
   bleeding: [{ key: 'heavy_bleeding', question: 'Le saignement est-il abondant ou ne s’arrête pas ?' }],
   choking: [{ key: 'can_cough', question: 'La personne peut-elle encore tousser ou parler ?' }],
