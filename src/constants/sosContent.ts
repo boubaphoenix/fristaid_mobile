@@ -6,9 +6,10 @@ import type { SosRole } from '@/lib/sosApi';
 // qui alimentent les règles médicales spécifiques, ex. malaise).
 //
 // IncidentType exclut les catégories de cours qui ne sont pas des incidents
-// sélectionnables dans le parcours SOS (ex. recovery_position, une leçon de
-// technique référencée depuis malaise/drowning, pas un "que se passe-t-il ?").
-export type IncidentType = Exclude<CourseType, 'recovery_position'>;
+// sélectionnables dans le parcours SOS : recovery_position (une technique
+// référencée depuis malaise/drowning) et general_principles (le cours
+// d'ouverture de l'Académie) ne sont jamais un "que se passe-t-il ?".
+export type IncidentType = Exclude<CourseType, 'recovery_position' | 'general_principles'>;
 
 export const ROLES: { value: SosRole; label: string }[] = [
   { value: 'witness', label: 'Je suis témoin' },

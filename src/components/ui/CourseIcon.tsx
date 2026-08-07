@@ -15,7 +15,8 @@ export type CourseType =
   | 'fall'
   | 'cardiac_arrest'
   | 'drowning'
-  | 'recovery_position';
+  | 'recovery_position'
+  | 'general_principles';
 
 const VITAL_COURSES: ReadonlySet<CourseType> = new Set(['bleeding', 'cardiac_arrest', 'drowning']);
 
@@ -29,6 +30,7 @@ const MONOGRAM: Record<CourseType, string> = {
   cardiac_arrest: 'AR',
   drowning: 'NO',
   recovery_position: 'PL',
+  general_principles: 'GS',
 };
 
 type CourseIconProps = {
