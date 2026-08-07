@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { getMissions } from '@/lib/missionsApi';
 import {
   getSimulation,
   submitSimulation,
@@ -32,6 +33,7 @@ export default function SimulationScreen() {
   const [selectedByStep, setSelectedByStep] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SimulationSubmitResult | null>(null);
+  const [missionId, setMissionId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -40,7 +42,11 @@ export default function SimulationScreen() {
     setSelectedByStep({});
     setResult(null);
     try {
-      const { simulation, steps } = await getSimulation(token, courseId);
+      const [{ simulation, steps }, missions] = await Promise.all([
+        getSimulation(token, courseId),
+        getMissions(token),
+      ]);
+      setMissionId(missions.find((m) => m.course_id === courseId)?.id ?? null);
       setState({ status: 'success', simulation, steps });
     } catch {
       setState({ status: 'error' });
@@ -103,7 +109,11 @@ export default function SimulationScreen() {
         {result.passed ? (
           <PrimaryButton
             label="Continuer vers la mission"
-            onPress={() => router.push('/(tabs)/missions')}
+            onPress={() =>
+              missionId
+                ? router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId } })
+                : router.push('/(tabs)/missions')
+            }
             variant="success"
             style={styles.spaced}
           />
@@ -171,7 +181,6 @@ export default function SimulationScreen() {
           return (
             <Pressable
               key={i}
-              disabled={hasAnswered}
               onPress={() => setSelectedByStep((prev) => ({ ...prev, [step.id]: i }))}
               style={[styles.option, isSelected && styles.optionSelected]}>
               <Text style={[typography.data, styles.optionLetter]}>{OPTION_LETTERS[i]}</Text>
