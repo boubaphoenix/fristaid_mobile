@@ -2,11 +2,10 @@ import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { ChevronStrip, OutlineButton, PrimaryButton, ResponsibilityNote, Screen, StateView } from '@/components/ui';
+import { ChevronStrip, ResponsibilityNote, Screen, StateView } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Certificate, getCertificate } from '@/lib/certificatesApi';
-import { shareMessage } from '@/lib/share';
 
 // Écran 10 — attestation pédagogique.
 export default function CertificateScreen() {
@@ -76,17 +75,6 @@ export default function CertificateScreen() {
         <ResponsibilityNote text="Cette attestation AFRICASECOUR est un document pédagogique. Elle ne remplace pas une certification officielle délivrée par un organisme habilité." />
       </View>
 
-      <PrimaryButton
-        label="Partager"
-        onPress={() =>
-          shareMessage(
-            `J'ai obtenu l'attestation "${certificate.course_title}" (${certificate.score}%) sur AFRICASECOUR — N° ${certificate.certificate_number}.`,
-          )
-        }
-        style={styles.spaced}
-      />
-      {/* Écran Passeport livré en Vague 7 — action inerte pour l'instant. */}
-      <OutlineButton label="Ajouter au Passeport" onPress={() => {}} disabled style={styles.spaced} />
     </Screen>
   );
 }
