@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { EmergencyBanner, PrimaryButton, Screen, StateView } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { useEmergencyContacts } from '@/context/EmergencyContactsContext';
 import { getSosQuota, type SosQuota } from '@/lib/sosApi';
 
 function formatCountdown(msRemaining: number): string {
@@ -19,6 +20,7 @@ function formatCountdown(msRemaining: number): string {
 // accessibles : ce n'est jamais une impasse, seulement une information.
 export default function SosQuotaScreen() {
   const { token } = useAuth();
+  const { samuNumber } = useEmergencyContacts();
   const params = useLocalSearchParams<Record<string, string>>();
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error' } | { status: 'success'; quota: SosQuota }
@@ -43,7 +45,7 @@ export default function SosQuotaScreen() {
 
   return (
     <Screen mode="stress" scroll>
-      <EmergencyBanner phoneNumber="185" />
+      <EmergencyBanner phoneNumber={samuNumber} />
 
       {state.status === 'loading' ? (
         <View style={styles.centered}>

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmergencyBanner, OutlineButton, Screen } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { EMERGENCY_INSTRUCTIONS, type EmergencyInstruction } from '@/constants/emergencyInstructions';
+import { useEmergencyContacts } from '@/context/EmergencyContactsContext';
 
 // Écran 03 bis — "Consignes sans compte" : accessible sans authentification
 // et sans réseau (contenu statique dupliqué de src/ai/scenarios.ts côté
@@ -13,10 +14,11 @@ import { EMERGENCY_INSTRUCTIONS, type EmergencyInstruction } from '@/constants/e
 // accède donc directement depuis l'écran de connexion.
 export default function EmergencyGuideScreen() {
   const [selected, setSelected] = useState<EmergencyInstruction | null>(null);
+  const { samuNumber } = useEmergencyContacts();
 
   return (
     <Screen mode="stress" scroll>
-      <EmergencyBanner phoneNumber="185" />
+      <EmergencyBanner phoneNumber={samuNumber} />
 
       {selected ? (
         <View style={styles.spaced}>

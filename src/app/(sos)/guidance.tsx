@@ -4,14 +4,21 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { EmergencyBanner, OutlineButton, PrimaryButton, ProgressSegments, Screen } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
-import type { IncidentType } from '@/constants/sosContent';
+import { INCIDENTS, ROLES, type IncidentType } from '@/constants/sosContent';
 import { useAuth } from '@/context/AuthContext';
+import { useEmergencyContacts } from '@/context/EmergencyContactsContext';
 import { confirmAlert } from '@/lib/confirmAlert';
 import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
+import { isOneOf } from '@/lib/routeParams';
 import { shareMessage } from '@/lib/share';
 import { generateSosInstructions, startSosSession, type SosAnswers, type SosInstructions, type SosRole } from '@/lib/sosApi';
 
+const ROLE_VALUES = ROLES.map((r) => r.value);
+const INCIDENT_VALUES = INCIDENTS.map((i) => i.value);
+
 const NON_ANSWER_PARAM_KEYS = new Set(['role', 'incident']);
+
+const DEFAULT_PROLONGED_WAIT_MINUTES = 15;
 
 // Toutes les questions (écran 13) transmettent leur réponse en 'true' |
 // 'false' | 'unknown' via l'URL — on reconstitue les booléens ici, le
@@ -36,22 +43,39 @@ const OFFLINE_FALLBACK_STEPS = [
 
 export default function SosGuidanceScreen() {
   const { token } = useAuth();
+  const { samuNumber } = useEmergencyContacts();
   // Écrans 11-13 (collecte rôle/incident/réponses) livrés en Vague 2 — en
   // attendant, cet écran accepte les mêmes paramètres en query string pour
   // être testé en isolation (voir plan Vague 1, remarque écran 14).
   const params = useLocalSearchParams<{ role?: string; incident?: string }>();
-  const role = (params.role as SosRole | undefined) ?? 'witness';
-  const incidentType = (params.incident as IncidentType | undefined) ?? 'bleeding';
+  const role: SosRole = isOneOf(params.role, ROLE_VALUES) ? params.role : 'witness';
+  const incidentType: IncidentType = isOneOf(params.incident, INCIDENT_VALUES) ? params.incident : 'bleeding';
 
   const [state, setState] = useState<
     | { status: 'loading' }
     | { status: 'offline' }
-    | { status: 'success'; instructions: SosInstructions }
+    | { status: 'success'; instructions: SosInstructions; sessionId: string }
   >({ status: 'loading' });
   const [stepIndex, setStepIndex] = useState(0);
   const [showCannotDoWarning, setShowCannotDoWarning] = useState(false);
   const [isSharingLocation, setIsSharingLocation] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+
+  // v1.1, protocole d'attente prolongée (3bis) — double déclenchement :
+  // seuil configurable écoulé (minuteur, même patron que quota.tsx) ou
+  // lien manuel toujours visible. `startedAt`/`thresholdMinutes` viennent
+  // de /sos/start (aucun aller-retour réseau supplémentaire).
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [thresholdMinutes, setThresholdMinutes] = useState(DEFAULT_PROLONGED_WAIT_MINUTES);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const elapsedMinutes = startedAt ? (now - startedAt) / 60_000 : 0;
+  const prolongedWaitThresholdReached = elapsedMinutes >= thresholdMinutes;
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -60,9 +84,11 @@ export default function SosGuidanceScreen() {
     setShowCannotDoWarning(false);
     try {
       const answers = parseAnswersFromParams(params);
-      await startSosSession(token);
-      const { instructions } = await generateSosInstructions(token, role, incidentType, answers);
-      setState({ status: 'success', instructions });
+      const started = await startSosSession(token);
+      setStartedAt(Date.parse(started.started_at) || Date.now());
+      setThresholdMinutes(started.prolonged_wait_threshold_minutes ?? DEFAULT_PROLONGED_WAIT_MINUTES);
+      const { session_id, instructions } = await generateSosInstructions(token, role, incidentType, answers);
+      setState({ status: 'success', instructions, sessionId: session_id });
     } catch {
       setState({ status: 'offline' });
     }
@@ -106,10 +132,17 @@ export default function SosGuidanceScreen() {
     }
   }
 
+  function goToProlongedWait(sessionId: string | null) {
+    router.push({
+      pathname: '/(sos)/prolonged-wait',
+      params: { incident: incidentType, ...(sessionId ? { session_id: sessionId } : {}) },
+    });
+  }
+
   if (state.status === 'loading') {
     return (
       <Screen mode="stress" scroll>
-        <EmergencyBanner phoneNumber="185" />
+        <EmergencyBanner phoneNumber={samuNumber} />
         <View style={styles.centered}>
           <Text style={[typography.h2, styles.whiteText]}>Préparation des consignes…</Text>
         </View>
@@ -120,7 +153,7 @@ export default function SosGuidanceScreen() {
   if (state.status === 'offline') {
     return (
       <Screen mode="stress" scroll>
-        <EmergencyBanner phoneNumber="185" />
+        <EmergencyBanner phoneNumber={samuNumber} />
         <View style={styles.spaced}>
           {OFFLINE_FALLBACK_STEPS.map((step) => (
             <Text key={step} style={[typography.body, styles.whiteText, styles.spaced]}>
@@ -134,13 +167,13 @@ export default function SosGuidanceScreen() {
     );
   }
 
-  const { instructions } = state;
+  const { instructions, sessionId } = state;
   const isLastStep = stepIndex === instructions.steps.length - 1;
   const currentStep = instructions.steps[stepIndex];
 
   return (
     <Screen mode="stress" scroll>
-      <EmergencyBanner phoneNumber="185" />
+      <EmergencyBanner phoneNumber={samuNumber} />
 
       <View style={styles.spaced}>
         <Text style={[typography.data, styles.stepLabel]}>
@@ -150,6 +183,18 @@ export default function SosGuidanceScreen() {
       </View>
 
       <Text style={[typography.h1, styles.whiteText, styles.spaced]}>{currentStep}</Text>
+
+      {instructions.aspirinOffered ? (
+        <View style={styles.aspirinBlock}>
+          <Text style={[typography.bodyBold, styles.aspirinText]}>
+            Aspirine proposée : 300 mg à mâcher, jamais avalée entière, jamais au-delà de cette dose.
+          </Text>
+          <Text style={[typography.small, styles.aspirinText]}>
+            Orientez la personne en urgence vers une structure de soins : l'aspirine ne remplace jamais l'évaluation
+            médicale.
+          </Text>
+        </View>
+      ) : null}
 
       {showCannotDoWarning ? (
         <View style={styles.warningBlock}>
@@ -166,6 +211,19 @@ export default function SosGuidanceScreen() {
         <Text style={[typography.body, styles.whiteText, styles.spaced]}>
           Dernière étape. Continuez de suivre les consignes des secours jusqu'à leur arrivée.
         </Text>
+      ) : null}
+
+      {prolongedWaitThresholdReached ? (
+        <View style={styles.prolongedWaitBanner}>
+          <Text style={[typography.bodyBold, styles.warningText]}>Cela fait longtemps que vous attendez.</Text>
+          <PrimaryButton
+            label="Les secours tardent"
+            onPress={() => goToProlongedWait(sessionId)}
+            stress
+            variant="danger"
+            style={styles.spaced}
+          />
+        </View>
       ) : null}
 
       <PrimaryButton
@@ -192,6 +250,13 @@ export default function SosGuidanceScreen() {
       {shareFeedback ? (
         <Text style={[typography.small, styles.whiteText, styles.spaced]}>{shareFeedback}</Text>
       ) : null}
+
+      <Text
+        accessibilityRole="link"
+        onPress={() => goToProlongedWait(sessionId)}
+        style={[typography.small, styles.manualProlongedWaitLink]}>
+        Ça fait longtemps que j'attends
+      </Text>
     </Screen>
   );
 }
@@ -223,5 +288,31 @@ const styles = StyleSheet.create({
   },
   warningText: {
     color: colors.white,
+  },
+  aspirinBlock: {
+    backgroundColor: colors.warningBg,
+    borderColor: colors.warningOrange,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginTop: spacing.lg,
+    gap: spacing.xs,
+  },
+  aspirinText: {
+    color: colors.white,
+  },
+  prolongedWaitBanner: {
+    backgroundColor: colors.emergencyBg,
+    borderColor: colors.emergencyRed,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginTop: spacing.lg,
+  },
+  manualProlongedWaitLink: {
+    color: colors.stressSubtext,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    textDecorationLine: 'underline',
   },
 });

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmergencyBanner, Screen } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { INCIDENTS, VITAL_INCIDENTS } from '@/constants/sosContent';
+import { useEmergencyContacts } from '@/context/EmergencyContactsContext';
 import type { SosRole } from '@/lib/sosApi';
 
 // Écran 12 — choix de l'incident (Mode Stress). Grille 2 colonnes, les 3
@@ -13,10 +14,11 @@ import type { SosRole } from '@/lib/sosApi';
 export default function SosIncidentScreen() {
   const { role } = useLocalSearchParams<{ role?: string }>();
   const currentRole = (role as SosRole | undefined) ?? 'witness';
+  const { samuNumber } = useEmergencyContacts();
 
   return (
     <Screen mode="stress" scroll>
-      <EmergencyBanner phoneNumber="185" />
+      <EmergencyBanner phoneNumber={samuNumber} />
       <Text style={[typography.h1, styles.whiteText, styles.title]}>Quel est l'incident ?</Text>
 
       <View style={styles.grid}>

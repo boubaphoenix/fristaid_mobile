@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, sizes, spacing, typography } from '@/constants/theme';
+import { buildTelUrl } from '@/lib/urlSafety';
 
 type EmergencyBannerProps = {
   message?: string;
@@ -30,7 +31,10 @@ export function EmergencyBanner({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Appeler les secours au ${phoneNumber}`}
-      onPress={() => Linking.openURL(`tel:${phoneNumber}`)}>
+      onPress={() => {
+        const telUrl = buildTelUrl(phoneNumber);
+        if (telUrl) Linking.openURL(telUrl);
+      }}>
       {content}
     </Pressable>
   );

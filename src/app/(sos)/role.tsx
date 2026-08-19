@@ -4,11 +4,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmergencyBanner, Screen } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { ROLES } from '@/constants/sosContent';
+import { useEmergencyContacts } from '@/context/EmergencyContactsContext';
 import { confirmAlert } from '@/lib/confirmAlert';
 
 // Écran 11 — choix du rôle (Mode Stress). Une seule action par écran :
 // sélectionner un rôle pousse directement vers le choix de l'incident.
 export default function SosRoleScreen() {
+  const { samuNumber } = useEmergencyContacts();
+
   function confirmExit() {
     confirmAlert(
       'Quitter le guidage SOS ?',
@@ -22,7 +25,7 @@ export default function SosRoleScreen() {
 
   return (
     <Screen mode="stress" scroll>
-      <EmergencyBanner phoneNumber="185" />
+      <EmergencyBanner phoneNumber={samuNumber} />
 
       <View style={styles.header}>
         <Text style={[typography.h1, styles.whiteText]}>Qui êtes-vous ?</Text>

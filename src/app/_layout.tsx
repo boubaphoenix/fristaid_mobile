@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { AuthProvider } from '@/context/AuthContext';
+import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,8 +34,10 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <Slot />
-    </AuthProvider>
+    <EmergencyContactsProvider>
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
+    </EmergencyContactsProvider>
   );
 }
