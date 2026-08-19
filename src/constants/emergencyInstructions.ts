@@ -102,4 +102,17 @@ export const EMERGENCY_INSTRUCTIONS: EmergencyInstruction[] = [
     ],
     doNotDo: ['Ne forcez pas la personne à se relever.', "Ne la mobilisez pas en cas de suspicion de traumatisme."],
   },
+  {
+    incident: 'avc',
+    label: 'AVC',
+    steps: [
+      "Appelez les secours immédiatement et notez l'heure exacte d'apparition des signes.",
+      'Rassurez la personne, ne la laissez pas seule, ne la faites ni boire ni manger.',
+      "Même si les signes disparaissent avant l'arrivée des secours, maintenez l'alerte : cela peut être un AIT (mini-AVC).",
+    ],
+    doNotDo: [
+      'Ne donnez jamais d’aspirine ni aucun médicament, même en présence d’une douleur thoracique associée.',
+      "N'annulez jamais l'alerte parce que les signes ont disparu.",
+    ],
+  },
 ];
