@@ -18,6 +18,7 @@ import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Course, getCourses } from '@/lib/coursesApi';
 import { type AuthUser } from '@/lib/authApi';
+import { initials } from '@/lib/initials';
 import { confirmAlert } from '@/lib/confirmAlert';
 import { buildEmergencyMessage, LOCATION_SHARE_COPY, requestAndGetCurrentPosition } from '@/lib/location';
 import { shareMessage } from '@/lib/share';
@@ -117,9 +118,7 @@ export default function HomeScreen() {
   const completedCount = courses.filter((c) => c.progress?.is_course_completed).length;
   const courseInProgress = courses.find((c) => c.progress && !c.progress.is_course_completed) ?? null;
 
-  // PLS n'a pas de catégorie de cours dédiée : rattaché à "malaise" (PLS
-  // est le geste enseigné pour une personne inconsciente qui respire).
-  const plsCourse = courses.find((c) => c.category === 'malaise') ?? null;
+  const plsCourse = courses.find((c) => c.category === 'recovery_position') ?? null;
   const reanimationCourse = courses.find((c) => c.category === 'cardiac_arrest') ?? null;
   const hemorragieCourse = courses.find((c) => c.category === 'bleeding') ?? null;
   const etouffementCourse = courses.find((c) => c.category === 'choking') ?? null;
@@ -134,30 +133,39 @@ export default function HomeScreen() {
 
   return (
     <Screen mode="normal" scroll>
-      <View style={styles.topBar}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Kits de secours"
-          onPress={() => router.push('/kits')}
-          style={styles.kitButton}>
-          <View style={styles.kitBadge}>
-            <View style={styles.bagHandle} />
-            <View style={styles.bagBody}>
-              <View style={styles.bagCrossV} />
-              <View style={styles.bagCrossH} />
-            </View>
-          </View>
-        </Pressable>
-      </View>
-
       <View style={styles.header}>
-        <Text style={typography.h2}>
-          Bonjour{profile.profile.full_name ? `, ${profile.profile.full_name}` : ''}
-        </Text>
+        <View style={styles.greetingRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Voir mon profil"
+            onPress={() => router.push('/(tabs)/profile')}
+            style={styles.avatar}>
+            {profile.profile.avatar_url ? (
+              <Image source={{ uri: profile.profile.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+            ) : (
+              <Text style={[typography.bodyBold, styles.avatarLabel]}>
+                {initials(profile.profile.full_name, profile.email)}
+              </Text>
+            )}
+          </Pressable>
+          <Text style={typography.h2}>
+            Bonjour{profile.profile.full_name ? `, ${profile.profile.full_name}` : ''}
+          </Text>
+        </View>
         <PointsBadge value={profile.profile.points_total} />
       </View>
 
-      <Image source={HOME_IMAGES.hero} style={[styles.hero, styles.spaced]} contentFit="cover" />
+      <View style={[styles.heroContainer, styles.spaced]}>
+        <Image
+          source={HOME_IMAGES.hero}
+          style={styles.hero}
+          contentFit="cover"
+          contentPosition="center"
+        />
+        <Text style={[typography.bodyBold, styles.heroCaption]}>
+          Apprends les bons gestes avant que l’urgence arrive.
+        </Text>
+      </View>
 
       <ChevronStrip style={styles.spaced} />
       <Pressable
@@ -235,9 +243,14 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <Pressable style={[styles.spaced, styles.linkRow]} onPress={() => router.push('/weekly-challenge')}>
+        <Text style={typography.bodyBold}>Défis de la semaine</Text>
+        <Text style={[typography.small, styles.muted]}>Un nouveau défi chaque semaine, gagne des points.</Text>
+      </Pressable>
+
       {leaderboard ? (
         <Pressable style={[styles.spaced, styles.linkRow]} onPress={() => router.push('/leaderboard')}>
-          <Text style={typography.bodyBold}>Défi Secours de la semaine</Text>
+          <Text style={typography.bodyBold}>Palmarès des Sauveteurs</Text>
           <Text style={[typography.small, styles.muted]}>
             Rang {leaderboard.me.rank} · {leaderboard.me.points} pts
           </Text>
@@ -255,78 +268,57 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingTop: spacing.sm,
-  },
-  // Exception documentée à la règle "emergencyRed réservé aux urgences
-  // réelles" : demande explicite de l'utilisateur (2026-07-27) pour ce
-  // bouton précis. Pictogramme en formes géométriques (pas d'image
-  // importée) pour rester cohérent avec CourseIcon/ChevronStrip.
-  kitButton: {
-    width: sizes.touchMin,
-    height: sizes.touchMin,
-    borderRadius: radius.card,
-    backgroundColor: colors.emergencyRed,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kitBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bagHandle: {
-    position: 'absolute',
-    top: 5,
-    width: 10,
-    height: 5,
-    borderWidth: 2,
-    borderColor: colors.emergencyRed,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
-  },
-  bagBody: {
-    width: 18,
-    height: 13,
-    marginTop: 6,
-    borderRadius: 3,
-    backgroundColor: colors.emergencyRed,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bagCrossV: {
-    position: 'absolute',
-    width: 2,
-    height: 8,
-    backgroundColor: colors.white,
-    borderRadius: 1,
-  },
-  bagCrossH: {
-    position: 'absolute',
-    width: 8,
-    height: 2,
-    backgroundColor: colors.white,
-    borderRadius: 1,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: spacing.md,
   },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flexShrink: 1,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.trustBlue,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  avatarLabel: {
+    color: colors.white,
+  },
   spaced: {
     marginTop: spacing.lg,
   },
+  heroContainer: {
+    width: '100%',
+    backgroundColor: colors.white,
+    borderRadius: radius.card,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   hero: {
     width: '100%',
-    height: 180,
-    borderRadius: radius.card,
+    aspectRatio: 16 / 9,
+    maxHeight: 260,
+  },
+  heroCaption: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    color: colors.darkText,
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   sosButton: {
     alignSelf: 'center',

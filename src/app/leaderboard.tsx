@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card, ChevronStrip, Screen, StateView, TitleProgressCard } from '@/components/ui';
+import { Card, ChevronStrip, RankBadgeProgressCard, Screen, StateView, TitleProgressCard } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -75,23 +75,7 @@ export default function LeaderboardScreen() {
       {state.status === 'success' ? (
         <>
           <View style={styles.spaced}>
-            <Card>
-              <Text style={typography.bodyBold}>{state.data.me.message}</Text>
-              <Text style={[typography.data, styles.muted]}>
-                Rang {state.data.me.rank} · {state.data.me.points} points
-              </Text>
-              {state.data.me.rank_title ? (
-                <Text style={[typography.small, styles.rankTitle]}>{state.data.me.rank_title}</Text>
-              ) : null}
-            </Card>
-          </View>
-
-          <View style={styles.spaced}>
-            <TitleProgressCard
-              title={state.data.me.title}
-              nextTitle={state.data.me.next_title}
-              pointsToNext={state.data.me.points_to_next_title}
-            />
+            <RankBadgeProgressCard pointsTotal={state.data.me.points} />
           </View>
 
           <View style={styles.spaced}>

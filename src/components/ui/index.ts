@@ -19,5 +19,9 @@ export { GoogleButton } from './GoogleButton';
 // l'importe directement en lazy() depuis './VideoCapsule'.
 export { PathwayStepper } from './PathwayStepper';
 export { TitleProgressCard } from './TitleProgressCard';
+export { RankBadgeProgressCard } from './RankBadgeProgressCard';
 export { GestureCard } from './GestureCard';
 export { LessonStepCard } from './LessonStepCard';
+export { WhatsAppContactAction } from './WhatsAppContactAction';
+export { FloatingTabBar } from './FloatingTabBar';
+

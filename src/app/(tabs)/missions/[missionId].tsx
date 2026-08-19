@@ -94,8 +94,8 @@ export default function MissionDetailScreen() {
           state="empty"
           title="Mission introuvable"
           message="Cette mission n'existe plus ou a été retirée."
-          actionLabel="Retour aux missions"
-          onAction={() => router.replace('/(tabs)/missions')}
+          actionLabel="Retour à l'Académie"
+          onAction={() => router.replace('/(tabs)/academy')}
         />
       </Screen>
     );
@@ -118,7 +118,7 @@ export default function MissionDetailScreen() {
           onPress={() =>
             state.mission.course_id
               ? router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId: state.mission.course_id } })
-              : router.replace('/(tabs)/missions')
+              : router.replace('/(tabs)/academy')
           }
           style={styles.spaced}
         />

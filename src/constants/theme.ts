@@ -17,6 +17,7 @@ export const colors = {
   successBg: 'rgba(46, 125, 50, 0.12)',
   emergencyBg: 'rgba(214, 40, 40, 0.10)',
   warningBg: 'rgba(245, 124, 0, 0.12)',
+  trustBg: 'rgba(21, 101, 192, 0.10)',
 } as const;
 
 // Nouvelle identité de marque (planche Banani, 2026-07). Séparée de
@@ -52,6 +53,10 @@ export const typography = {
   bodyBold: { fontFamily: fonts.bodyBold, fontSize: 16, lineHeight: 24 },
   small:    { fontFamily: fonts.body,     fontSize: 14, lineHeight: 20 },
   caption:  { fontFamily: fonts.body,     fontSize: 12, lineHeight: 16 },
+  // Variante grasse de `small`, utilisée pour le texte sur fond de couleur
+  // (ResponsibilityNote) — `caption` seul est trop petit/fin pour rester
+  // lisible sur mobile dans ce contexte.
+  smallBold:{ fontFamily: fonts.bodyBold, fontSize: 14, lineHeight: 20 },
   // données vérifiables — toujours en mono
   data:     { fontFamily: fonts.mono,     fontSize: 16, lineHeight: 24 },
   dataLarge:{ fontFamily: fonts.monoBold, fontSize: 32, lineHeight: 42 },
@@ -75,6 +80,10 @@ export const radius = {
   button: 4,
   pill: 4,
   card: 8, // maximum absolu
+  // Exception documentée à la règle ci-dessus : réservé exclusivement à la
+  // pilule flottante de la nav basse (FloatingTabBar), même principe que
+  // shadows.elevationNav plus bas.
+  navPill: 28,
 } as const;
 
 export const sizes = {
@@ -86,6 +95,10 @@ export const sizes = {
   bannerHeight: 56,
   chevronHeight: 8,
   navHeight: 64,
+  // Diamètre du cercle SOS qui déborde de la pilule de nav — plus petit
+  // que sosButtonHeight (bouton SOS de l'écran d'accueil), même patron
+  // (borderRadius = taille / 2).
+  navBarSosSize: 64,
 } as const;
 
 // Deux régimes visuels. Sélectionner via un contexte ou une prop d'écran.

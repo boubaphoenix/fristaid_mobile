@@ -1,7 +1,8 @@
 import { Redirect, Tabs } from 'expo-router';
 import { View } from 'react-native';
 
-import { brand, colors } from '@/constants/theme';
+import { FloatingTabBar } from '@/components/ui';
+import { brand } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabsLayout() {
@@ -17,16 +18,17 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.trustBlue,
-        tabBarInactiveTintColor: colors.mutedText,
-      }}>
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <FloatingTabBar {...props} />}>
       <Tabs.Screen name="index" options={{ title: 'Accueil' }} />
       <Tabs.Screen name="academy" options={{ title: 'Académie' }} />
       <Tabs.Screen name="sos" options={{ title: 'SOS' }} />
-      <Tabs.Screen name="missions" options={{ title: 'Missions' }} />
+      <Tabs.Screen name="kits" options={{ title: 'Kit secours' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil' }} />
+      {/* Route fichier toujours présente (src/app/(tabs)/missions/) mais
+          retirée de la nav — href: null l'exclut de state.routes, sinon
+          Expo Router l'ajoute automatiquement comme 6e onglet. */}
+      <Tabs.Screen name="missions" options={{ href: null }} />
     </Tabs>
   );
 }
