@@ -2,7 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ChevronStrip, ResponsibilityNote, Screen, StateView } from '@/components/ui';
+import { ChevronStrip, RankBadgeProgressCard, ResponsibilityNote, Screen, StateView } from '@/components/ui';
 import { colors, fonts, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Passport, getPassport } from '@/lib/passportApi';
@@ -60,6 +60,8 @@ export default function PassportScreen() {
 
       {state.status === 'success' ? (
         <>
+          <RankBadgeProgressCard pointsTotal={state.passport.points_total} />
+
           <AccordionSection
             title={`Cours terminés (${state.passport.courses.completed})`}
             expanded={expanded === 'courses'}

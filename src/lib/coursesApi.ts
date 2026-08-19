@@ -17,7 +17,6 @@ export type CourseProgress = {
   completed_lessons: string[];
   last_accessed_at: string | null;
   quiz_passed: boolean;
-  has_simulation: boolean;
   simulation_passed: boolean;
   mission_completed: boolean;
   badge_awarded: boolean;
@@ -35,6 +34,7 @@ export type Course = {
   recommended_kit_id: string | null;
   sort_order: number;
   lessons_count: number;
+  has_simulation: boolean;
   progress: CourseProgress | null;
 };
 

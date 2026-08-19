@@ -11,11 +11,14 @@ import {
   ResponsibilityNote,
   Screen,
   StateView,
+  WhatsAppContactAction,
 } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { LESSON_STEP_IMAGES } from '@/constants/lessonStepImages';
+import { buildLessonErrorMessage } from '@/lib/contactMessages';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 // Chargé à la demande : react-native-youtube-iframe (WebView) ne doit être
 // requis que quand une leçon avec vidéo est réellement ouverte, pas au
@@ -51,7 +54,11 @@ class VideoCapsuleBoundary extends Component<{ children: ReactNode }, { hasError
 // Écran 07 — lecture d'une leçon.
 export default function LessonScreen() {
   const { token } = useAuth();
-  const { courseId, lessonId } = useLocalSearchParams<{ courseId: string; lessonId: string }>();
+  const { courseId, lessonId, courseTitle } = useLocalSearchParams<{
+    courseId: string;
+    lessonId: string;
+    courseTitle?: string;
+  }>();
   const [state, setState] = useState<
     { status: 'loading' } | { status: 'error' } | { status: 'success'; lessons: Lesson[] }
   >({ status: 'loading' });
@@ -60,6 +67,10 @@ export default function LessonScreen() {
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
+    if (!isValidRecordId(courseId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     try {
       const lessons = await getCourseLessons(token, courseId);
@@ -175,6 +186,13 @@ export default function LessonScreen() {
         variant="success"
         style={styles.spaced}
       />
+
+      <View style={styles.spaced}>
+        <WhatsAppContactAction
+          message={buildLessonErrorMessage(courseTitle ?? lesson.title)}
+          label="Signaler une erreur"
+        />
+      </View>
     </Screen>
   );
 }

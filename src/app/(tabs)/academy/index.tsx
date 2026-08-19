@@ -104,6 +104,9 @@ export default function CourseListScreen() {
                       <Text style={[typography.small, styles.muted]}>
                         {course.lessons_count} leçons · {course.duration_minutes} min
                       </Text>
+                      {course.progress?.mission_completed ? (
+                        <Text style={[typography.small, styles.missionBadge]}>✓ Mission validée</Text>
+                      ) : null}
                     </View>
                     {course.progress?.is_course_completed ? (
                       <Text style={[typography.h3, styles.checkmark]}>✓</Text>
@@ -163,5 +166,10 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: colors.successGreen,
+  },
+  missionBadge: {
+    color: colors.successGreen,
+    fontWeight: '700',
+    marginTop: spacing.xs,
   },
 });

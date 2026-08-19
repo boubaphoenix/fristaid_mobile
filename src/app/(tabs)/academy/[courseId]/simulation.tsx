@@ -6,6 +6,7 @@ import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } fro
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { getMissions } from '@/lib/missionsApi';
+import { isValidRecordId } from '@/lib/routeParams';
 import {
   getSimulation,
   submitSimulation,
@@ -37,6 +38,10 @@ export default function SimulationScreen() {
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
+    if (!isValidRecordId(courseId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     setStepIndex(0);
     setSelectedByStep({});
@@ -112,7 +117,7 @@ export default function SimulationScreen() {
             onPress={() =>
               missionId
                 ? router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId } })
-                : router.push('/(tabs)/missions')
+                : router.push({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } })
             }
             variant="success"
             style={styles.spaced}

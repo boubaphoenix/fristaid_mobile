@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { type Kit, getKit } from '@/lib/kitsApi';
 import { createOrder, type PaymentMethod } from '@/lib/ordersApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
   { value: 'orange_money', label: 'Orange Money' },
@@ -33,7 +34,10 @@ export default function OrderSummaryScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const load = useCallback(async () => {
-    if (!kitId) return;
+    if (!kitId || !isValidRecordId(kitId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     try {
       const kit = await getKit(kitId);

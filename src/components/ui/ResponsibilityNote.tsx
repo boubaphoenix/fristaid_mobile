@@ -11,7 +11,7 @@ type ResponsibilityNoteProps = {
 export function ResponsibilityNote({ text }: ResponsibilityNoteProps) {
   return (
     <View style={styles.note}>
-      <Text style={[typography.caption, styles.text]}>{text}</Text>
+      <Text style={[typography.smallBold, styles.text]}>{text}</Text>
     </View>
   );
 }

@@ -3,6 +3,7 @@ import { Dimensions, StyleSheet, Text, View, type LayoutChangeEvent } from 'reac
 import YoutubePlayer from 'react-native-youtube-iframe';
 
 import { colors, radius, spacing, typography } from '@/constants/theme';
+import { isValidYoutubeVideoId } from '@/lib/youtubeSafety';
 
 type VideoCapsuleProps = {
   videoId: string;
@@ -78,7 +79,7 @@ export function VideoCapsule({ videoId, durationSeconds }: VideoCapsuleProps) {
         <Text style={[typography.small, styles.headerText]}>{headerLabel}</Text>
       </View>
 
-      {status === 'error' ? (
+      {status === 'error' || !isValidYoutubeVideoId(videoId) ? (
         <View style={styles.errorBlock}>
           <Text style={[typography.body, styles.errorText]}>
             Vidéo indisponible hors-ligne — lisez le cours ci-dessous

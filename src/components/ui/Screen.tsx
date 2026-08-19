@@ -35,13 +35,15 @@ export function Screen({
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: background }]} edges={['top', 'bottom']}>
-      {keyboardAvoiding ? (
-        <KeyboardAvoidingView style={styles.safeArea} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          {content}
-        </KeyboardAvoidingView>
-      ) : (
-        content
-      )}
+      <View style={styles.widthBound}>
+        {keyboardAvoiding ? (
+          <KeyboardAvoidingView style={styles.safeArea} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            {content}
+          </KeyboardAvoidingView>
+        ) : (
+          content
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -49,6 +51,15 @@ export function Screen({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  // Sur web/desktop, un écran conçu pour mobile s'étire sinon bord à bord
+  // sur toute la largeur de la fenêtre — cette contrainte le recentre en
+  // colonne "app mobile" sans rien changer sur un écran natif (déjà < 480).
+  widthBound: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
   },
   content: {
     flexGrow: 1,

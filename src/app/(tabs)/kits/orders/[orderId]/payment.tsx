@@ -6,6 +6,7 @@ import { OutlineButton, PrimaryButton, Screen } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { getPaymentStatus, initiatePayment, type PaymentStatusValue } from '@/lib/paymentsApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 const POLL_INTERVAL_MS = 1500;
 
@@ -27,7 +28,7 @@ export default function PaymentScreen() {
   }, []);
 
   const start = useCallback(async () => {
-    if (!token || !orderId || !phone) return;
+    if (!token || !orderId || !phone || !isValidRecordId(orderId)) return;
     stopPolling();
     setStatus('starting');
     try {
@@ -52,6 +53,20 @@ export default function PaymentScreen() {
   }, [token, orderId, phone, stopPolling]);
 
   useEffect(() => stopPolling, [stopPolling]);
+
+  if (!isValidRecordId(orderId) || !phone) {
+    return (
+      <Screen mode="normal">
+        <View style={styles.centered}>
+          <Text style={[typography.h2, styles.centerText]}>Lien de paiement invalide</Text>
+          <Text style={[typography.body, styles.muted, styles.centerText]}>
+            Ce lien de paiement est incomplet ou invalide.
+          </Text>
+          <PrimaryButton label="Retour aux kits" onPress={() => router.replace('/(tabs)/kits')} style={styles.spaced} />
+        </View>
+      </Screen>
+    );
+  }
 
   if (status === 'confirm') {
     const amountLabel = amount ? `${Number(amount).toLocaleString('fr-FR')} FCFA` : 'Le montant de votre commande';

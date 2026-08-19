@@ -6,6 +6,7 @@ import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } fro
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { getQuiz, submitQuiz, type QuizQuestion, type QuizSubmitResult } from '@/lib/quizApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -26,6 +27,10 @@ export default function QuizScreen() {
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
+    if (!isValidRecordId(courseId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     setQIndex(0);
     setSelectedByQuiz({});

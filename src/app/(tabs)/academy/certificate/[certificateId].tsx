@@ -6,6 +6,7 @@ import { ChevronStrip, ResponsibilityNote, Screen, StateView } from '@/component
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { type Certificate, getCertificate } from '@/lib/certificatesApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 // Écran 10 — attestation pédagogique.
 export default function CertificateScreen() {
@@ -17,6 +18,10 @@ export default function CertificateScreen() {
 
   const load = useCallback(async () => {
     if (!token || !certificateId) return;
+    if (!isValidRecordId(certificateId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     try {
       const certificate = await getCertificate(token, certificateId);

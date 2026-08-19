@@ -14,6 +14,7 @@ import { type IdentityCard, getIdentityCard } from '@/lib/identityCardApi';
 import { IDENTITY_CARD_SHARE_COPY, buildIdentityCardMessage } from '@/lib/identityCardShare';
 import { initials } from '@/lib/initials';
 import { shareMessage } from '@/lib/share';
+import { openHttpsUrl } from '@/lib/urlSafety';
 
 type ShareTarget = 'whatsapp' | 'facebook';
 
@@ -130,15 +131,11 @@ export default function IdentityCardScreen() {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(message).catch(() => {});
       }
-      if (typeof window !== 'undefined') {
-        window.open('https://www.facebook.com/', '_blank', 'noopener,noreferrer');
-      }
+      openHttpsUrl('https://www.facebook.com/');
       setShareFeedback(IDENTITY_CARD_SHARE_COPY.facebookCopyHint);
       return;
     }
-    if (typeof window !== 'undefined') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-    }
+    openHttpsUrl(`https://wa.me/?text=${encodeURIComponent(message)}`);
   }
 
   async function shareCardImage(card: IdentityCard) {

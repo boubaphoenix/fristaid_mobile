@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton, Screen, StateView } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
 import { type Kit, getKit } from '@/lib/kitsApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 const MAX_QUANTITY = 10;
 
@@ -17,7 +18,10 @@ export default function KitDetailScreen() {
   const [quantity, setQuantity] = useState(1);
 
   const load = useCallback(async () => {
-    if (!kitId) return;
+    if (!kitId || !isValidRecordId(kitId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     try {
       const kit = await getKit(kitId);
@@ -100,7 +104,8 @@ export default function KitDetailScreen() {
 
 const styles = StyleSheet.create({
   visual: {
-    height: 240,
+    width: '100%',
+    aspectRatio: 16 / 9,
     borderRadius: radius.card,
     backgroundColor: colors.trustBlue,
     justifyContent: 'flex-end',

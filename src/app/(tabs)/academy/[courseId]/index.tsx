@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { type Course, type Lesson, getCourseDetail, getCourseLessons } from '@/lib/coursesApi';
 import { type Kit, getKits } from '@/lib/kitsApi';
 import { type Mission, getMissions } from '@/lib/missionsApi';
+import { isValidRecordId } from '@/lib/routeParams';
 
 type DetailData = { course: Course; lessons: Lesson[]; mission: Mission | null; kit: Kit | null };
 
@@ -22,6 +23,10 @@ export default function CourseDetailScreen() {
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
+    if (!isValidRecordId(courseId)) {
+      setState({ status: 'error' });
+      return;
+    }
     setState({ status: 'loading' });
     try {
       const [course, lessons, missions, kits] = await Promise.all([
@@ -66,7 +71,7 @@ export default function CourseDetailScreen() {
   const progress = course.progress;
   const hasVideo = lessons.some((l) => l.youtube_video_id);
   const quizPassed = progress?.quiz_passed ?? false;
-  const hasSimulation = progress?.has_simulation ?? false;
+  const hasSimulation = course.has_simulation;
   const simulationPassed = progress?.simulation_passed ?? false;
   const missionCompleted = progress?.mission_completed ?? false;
   const badgeAwarded = progress?.badge_awarded ?? false;
@@ -97,7 +102,7 @@ export default function CourseDetailScreen() {
             onPress={() =>
               router.push({
                 pathname: '/(tabs)/academy/[courseId]/lesson/[lessonId]',
-                params: { courseId: course.id, lessonId: lesson.id },
+                params: { courseId: course.id, lessonId: lesson.id, courseTitle: course.title },
               })
             }>
             <Card style={styles.lessonCard}>
@@ -147,12 +152,19 @@ export default function CourseDetailScreen() {
             onPress={() =>
               router.push({ pathname: '/(tabs)/missions/[missionId]', params: { missionId: mission.id } })
             }>
-            <Card style={hasSimulation && !simulationPassed ? styles.lockedCard : undefined}>
-              <Text style={typography.body}>
-                {hasSimulation && !simulationPassed
-                  ? 'Verrouillé — réussissez la simulation pour la débloquer'
-                  : mission.title}
-              </Text>
+            <Card
+              style={[
+                hasSimulation && !simulationPassed ? styles.lockedCard : undefined,
+                missionCompleted ? styles.missionCardCompleted : undefined,
+              ]}>
+              <View style={styles.missionTitleRow}>
+                <Text style={typography.body}>
+                  {hasSimulation && !simulationPassed
+                    ? 'Verrouillé — réussissez la simulation pour la débloquer'
+                    : mission.title}
+                </Text>
+                {missionCompleted ? <Text style={styles.missionCheckmark}>✓</Text> : null}
+              </View>
             </Card>
           </Pressable>
         </View>
@@ -185,7 +197,7 @@ export default function CourseDetailScreen() {
           nextLesson &&
           router.push({
             pathname: '/(tabs)/academy/[courseId]/lesson/[lessonId]',
-            params: { courseId: course.id, lessonId: nextLesson.id },
+            params: { courseId: course.id, lessonId: nextLesson.id, courseTitle: course.title },
           })
         }
         style={styles.spaced}
@@ -227,6 +239,19 @@ const styles = StyleSheet.create({
   },
   lockedCard: {
     opacity: 0.6,
+  },
+  missionCardCompleted: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.successGreen,
+  },
+  missionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  missionCheckmark: {
+    color: colors.successGreen,
+    fontWeight: '700',
   },
   muted: {
     color: colors.mutedText,

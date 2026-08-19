@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, spacing, typography } from '@/constants/theme';
+import { buildYoutubeEmbedUrl } from '@/lib/youtubeSafety';
 
 // Variante web : `react-native-youtube-iframe` résout `WebView.web.js` vers
 // le paquet `react-native-web-webview` (abandonné depuis 2022, dépendance
@@ -84,6 +85,7 @@ export function VideoCapsule({ videoId, durationSeconds }: VideoCapsuleProps) {
   const height = Math.round(width * (9 / 16));
   const headerLabel =
     durationSeconds == null ? 'Capsule Vidéo' : `Capsule Vidéo • ${formatDuration(durationSeconds)} min`;
+  const embedUrl = buildYoutubeEmbedUrl(videoId);
 
   return (
     <View style={styles.container} ref={containerRef}>
@@ -91,7 +93,7 @@ export function VideoCapsule({ videoId, durationSeconds }: VideoCapsuleProps) {
         <Text style={[typography.small, styles.headerText]}>{headerLabel}</Text>
       </View>
 
-      {status === 'error' ? (
+      {status === 'error' || !embedUrl ? (
         <View style={styles.errorBlock}>
           <Text style={[typography.body, styles.errorText]}>
             Vidéo indisponible hors-ligne — lisez le cours ci-dessous
@@ -103,12 +105,20 @@ export function VideoCapsule({ videoId, durationSeconds }: VideoCapsuleProps) {
           {width > 0 && (
             // eslint-disable-next-line react/no-unknown-property -- iframe web natif, ce fichier ne compile que pour la plateforme web
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
+              src={embedUrl}
               width={width}
               height={height}
               style={frameStyle}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              // Sans sandbox, l'iframe tourne avec des privilèges complets.
+              // allow-scripts + allow-same-origin sont requis pour que le
+              // player YouTube fonctionne ; allow-popups pour "Regarder sur
+              // YouTube" ; allow-presentation pour le plein écran/PiP.
+              // Volontairement absents : allow-forms, allow-top-navigation,
+              // allow-modals, allow-pointer-lock.
+              sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+              referrerPolicy="strict-origin-when-cross-origin"
               onLoad={handleLoad}
               onError={handleError}
             />
