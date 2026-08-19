@@ -1,5 +1,7 @@
 import { Platform, Share } from 'react-native';
 
+import { openHttpsUrl } from './urlSafety';
+
 export type ShareOutcome = 'shared' | 'cancelled' | 'unsupported';
 
 // Sur natif (iOS/Android), Share.share() ouvre le menu de partage système
@@ -26,8 +28,6 @@ export async function shareMessage(message: string): Promise<ShareOutcome> {
     }
   }
 
-  if (typeof window !== 'undefined') {
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-  }
+  openHttpsUrl(`https://wa.me/?text=${encodeURIComponent(message)}`);
   return 'unsupported';
 }
