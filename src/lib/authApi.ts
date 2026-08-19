@@ -4,9 +4,11 @@ export type AuthUser = {
   id: string;
   email: string;
   role: string;
+  email_verified: boolean;
   profile: {
     full_name: string | null;
     phone: string | null;
+    avatar_url: string | null;
     points_total: number;
     reminders_enabled: boolean;
   };
@@ -41,4 +43,34 @@ export function logout(token: string) {
 
 export function fetchMe(token: string) {
   return apiFetch<AuthUser>('/auth/me', { token });
+}
+
+// Vérification d'e-mail et réinitialisation de mot de passe (Resend).
+export function requestEmailVerification(token: string) {
+  return apiFetch<{ sent: boolean; already_verified?: boolean }>('/auth/verify-email/request', {
+    method: 'POST',
+    token,
+  });
+}
+
+export function confirmEmailVerification(token: string, code: string) {
+  return apiFetch<{ user: AuthUser }>('/auth/verify-email/confirm', {
+    method: 'POST',
+    token,
+    body: { code },
+  });
+}
+
+export function requestPasswordReset(email: string) {
+  return apiFetch<{ sent: boolean }>('/auth/password-reset/request', {
+    method: 'POST',
+    body: { email },
+  });
+}
+
+export function confirmPasswordReset(email: string, code: string, new_password: string) {
+  return apiFetch<AuthResponse>('/auth/password-reset/confirm', {
+    method: 'POST',
+    body: { email, code, new_password },
+  });
 }

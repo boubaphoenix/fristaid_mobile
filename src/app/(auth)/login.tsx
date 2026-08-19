@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { GoogleButton, LogoMark, OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
@@ -77,10 +77,9 @@ export default function LoginScreen() {
         style={styles.spaced}
       />
 
-      {/* Mot de passe oublié hors périmètre MVP (§8.2) : lien inerte assumé, pas de fausse promesse de flux fonctionnel. */}
-      <Pressable disabled accessibilityRole="link" style={styles.forgotLink}>
+      <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
         <Text style={[typography.small, styles.mutedLink]}>Mot de passe oublié ?</Text>
-      </Pressable>
+      </Link>
 
       <PrimaryButton
         label={isSubmitting ? 'Connexion...' : 'Se connecter'}
