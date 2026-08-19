@@ -1,3 +1,5 @@
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -7,18 +9,9 @@ import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { type AuthUser } from '@/lib/authApi';
+import { confirmAlert } from '@/lib/confirmAlert';
+import { initials } from '@/lib/initials';
 import { getProfile, updateProfile, updateReminders } from '@/lib/profileApi';
-
-function initials(fullName: string | null, email: string): string {
-  if (fullName && fullName.trim()) {
-    const parts = fullName.trim().split(/\s+/);
-    return parts
-      .slice(0, 2)
-      .map((p) => p[0]?.toUpperCase())
-      .join('');
-  }
-  return email[0]?.toUpperCase() ?? '?';
-}
 
 // Écran 23 — profil et réglages.
 export default function ProfileScreen() {
@@ -31,6 +24,8 @@ export default function ProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isTogglingReminders, setIsTogglingReminders] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -55,6 +50,57 @@ export default function ProfileScreen() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function handlePickAvatar() {
+    if (!token) return;
+    setAvatarError(null);
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setAvatarError("L'accès aux photos est requis pour changer votre photo de profil.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+    if (result.canceled || !result.assets[0]?.base64) return;
+
+    const mimeType = result.assets[0].mimeType ?? 'image/jpeg';
+    const dataUri = `data:${mimeType};base64,${result.assets[0].base64}`;
+    setIsUploadingAvatar(true);
+    try {
+      const user = await updateProfile(token, { avatar_url: dataUri });
+      setState({ status: 'success', user });
+    } catch (err) {
+      setAvatarError(err instanceof ApiError ? err.message : "Impossible d'enregistrer la photo pour le moment.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    if (!token) return;
+    setAvatarError(null);
+    setIsUploadingAvatar(true);
+    try {
+      const user = await updateProfile(token, { avatar_url: null });
+      setState({ status: 'success', user });
+    } catch (err) {
+      setAvatarError(err instanceof ApiError ? err.message : "Impossible de supprimer la photo pour le moment.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
+  function handleSignOutPress() {
+    confirmAlert('Se déconnecter', 'Voulez-vous vraiment vous déconnecter ?', [
+      { text: 'Rester connecté', style: 'cancel' },
+      { text: 'Se déconnecter', style: 'destructive', onPress: signOut },
+    ]);
   }
 
   async function handleToggleReminders(value: boolean) {
@@ -91,11 +137,38 @@ export default function ProfileScreen() {
   return (
     <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.avatarBlock}>
-        <View style={styles.avatar}>
-          <Text style={[typography.h2, styles.avatarLabel]}>{initials(user.profile.full_name, user.email)}</Text>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Changer la photo de profil"
+          onPress={handlePickAvatar}
+          disabled={isUploadingAvatar}
+          style={styles.avatar}>
+          {user.profile.avatar_url ? (
+            <Image source={{ uri: user.profile.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+          ) : (
+            <Text style={[typography.h2, styles.avatarLabel]}>{initials(user.profile.full_name, user.email)}</Text>
+          )}
+        </Pressable>
+        <Pressable onPress={handlePickAvatar} disabled={isUploadingAvatar} hitSlop={8}>
+          <Text style={[typography.caption, styles.link, styles.avatarActionSpacing]}>
+            {isUploadingAvatar ? 'Enregistrement...' : 'Changer la photo'}
+          </Text>
+        </Pressable>
+        {user.profile.avatar_url && !isUploadingAvatar ? (
+          <Pressable onPress={handleRemoveAvatar} hitSlop={8}>
+            <Text style={[typography.caption, styles.error]}>Supprimer la photo</Text>
+          </Pressable>
+        ) : null}
+        {avatarError ? <Text style={[typography.caption, styles.error, styles.avatarActionSpacing]}>{avatarError}</Text> : null}
         <Text style={[typography.h3, styles.spaced]}>{user.profile.full_name || user.email}</Text>
         <Text style={[typography.small, styles.muted]}>{user.email}</Text>
+        {user.email_verified ? (
+          <Text style={[typography.caption, styles.verifiedText]}>✓ E-mail vérifié</Text>
+        ) : (
+          <Pressable onPress={() => router.push('/verify-email')} hitSlop={8}>
+            <Text style={[typography.caption, styles.link]}>Vérifier mon e-mail</Text>
+          </Pressable>
+        )}
       </View>
 
       <TextField label="Nom complet" value={fullName} onChangeText={setFullName} style={styles.spaced} />
@@ -147,7 +220,12 @@ export default function ProfileScreen() {
         <Text style={[typography.small, styles.muted]}>Partager ma progression</Text>
       </Pressable>
 
-      <OutlineButton label="Se déconnecter" onPress={signOut} variant="danger" style={styles.spacedLg} />
+      <Pressable accessibilityRole="button" onPress={() => router.push('/contact')} style={styles.leaderboardRow}>
+        <Text style={typography.bodyBold}>Nous contacter</Text>
+        <Text style={[typography.small, styles.muted]}>Signaler un problème ou nous écrire sur WhatsApp</Text>
+      </Pressable>
+
+      <OutlineButton label="Se déconnecter" onPress={handleSignOutPress} variant="danger" style={styles.spacedLg} />
     </Screen>
   );
 }
@@ -169,6 +247,20 @@ const styles = StyleSheet.create({
   },
   avatarLabel: {
     color: colors.white,
+  },
+  avatarImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  avatarActionSpacing: {
+    marginTop: spacing.xs,
+  },
+  link: {
+    color: colors.trustBlue,
+  },
+  verifiedText: {
+    color: colors.successGreen,
   },
   spaced: {
     marginBottom: spacing.md,

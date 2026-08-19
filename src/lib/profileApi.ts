@@ -5,7 +5,7 @@ export function getProfile(token: string) {
   return apiFetch<AuthUser>('/profile/me', { token });
 }
 
-export type UpdateProfileInput = { full_name?: string; phone?: string };
+export type UpdateProfileInput = { full_name?: string; phone?: string; avatar_url?: string | null };
 
 export function updateProfile(token: string, input: UpdateProfileInput) {
   return apiFetch<AuthUser>('/profile/me', { method: 'PATCH', token, body: input });
