@@ -6,6 +6,15 @@ import { tokenStorage } from '@/context/tokenStorage';
 // pour un visiteur non connecté, voir emergency-guide.tsx).
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
+// Même garde-fou que src/lib/api.ts:9-11 — cet appel utilise un fetch()
+// direct (pas apiFetch, endpoint public sans token) donc n'héritait pas de
+// la vérification automatiquement (audit sécurité 2026-08-20). La donnée
+// elle-même est publique, mais un EXPO_PUBLIC_API_URL mal configuré en
+// http:// ne doit pas passer inaperçu.
+if (!__DEV__ && !API_BASE_URL.startsWith('https://')) {
+  throw new Error(`EXPO_PUBLIC_API_URL doit utiliser https:// en production (reçu : ${API_BASE_URL})`);
+}
+
 const CACHE_KEY = 'emergency_contacts_cache_v1';
 
 // Ultime repli local : utilisé UNIQUEMENT si l'API est injoignable ET
