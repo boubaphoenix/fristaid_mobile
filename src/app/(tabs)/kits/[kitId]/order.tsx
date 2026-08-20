@@ -1,22 +1,18 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton, Screen, StateView, TextField } from '@/components/ui';
-import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
+import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { type Kit, getKit } from '@/lib/kitsApi';
-import { createOrder, type PaymentMethod } from '@/lib/ordersApi';
+import { createOrder } from '@/lib/ordersApi';
 import { isValidRecordId } from '@/lib/routeParams';
 
-const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: 'orange_money', label: 'Orange Money' },
-  { value: 'mtn_momo', label: 'MTN MoMo' },
-  { value: 'wave', label: 'Wave' },
-];
-
-// Écran 20 — récapitulatif de commande, livraison et choix du paiement.
+// Écran 20 — récapitulatif de commande et livraison. Le choix du moyen de
+// paiement n'a plus lieu ici : la Checkout hébergée Bictorys le propose
+// elle-même sur l'écran suivant (voir plan Bictorys §8).
 export default function OrderSummaryScreen() {
   const { token } = useAuth();
   const { kitId, quantity: quantityParam } = useLocalSearchParams<{ kitId: string; quantity?: string }>();
@@ -29,7 +25,6 @@ export default function OrderSummaryScreen() {
   const [phone, setPhone] = useState('');
   const [commune, setCommune] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,14 +47,13 @@ export default function OrderSummaryScreen() {
   }, [load]);
 
   async function handleSubmit() {
-    if (state.status !== 'success' || !token || !paymentMethod) return;
+    if (state.status !== 'success' || !token) return;
     setError(null);
     setIsSubmitting(true);
     try {
       const order = await createOrder(token, {
         kit_id: state.kit.id,
         quantity,
-        payment_method: paymentMethod,
         delivery_full_name: fullName,
         delivery_phone: phone,
         delivery_commune: commune,
@@ -92,7 +86,7 @@ export default function OrderSummaryScreen() {
 
   const { kit } = state;
   const subtotal = kit.price_xof * quantity;
-  const canSubmit = Boolean(fullName && phone && commune && paymentMethod) && !isSubmitting;
+  const canSubmit = Boolean(fullName && phone && commune) && !isSubmitting;
 
   return (
     <Screen mode="normal" scroll keyboardAvoiding>
@@ -123,22 +117,9 @@ export default function OrderSummaryScreen() {
         style={styles.spaced}
       />
 
-      <Text style={[typography.bodyBold, styles.sectionTitle]}>Paiement</Text>
-      {PAYMENT_METHODS.map((method) => {
-        const selected = paymentMethod === method.value;
-        return (
-          <Pressable
-            key={method.value}
-            accessibilityRole="radio"
-            accessibilityState={{ selected }}
-            onPress={() => setPaymentMethod(method.value)}
-            style={[styles.paymentBlock, selected && styles.paymentBlockSelected]}>
-            <Text style={[typography.bodyBold, selected ? styles.paymentLabelSelected : styles.paymentLabel]}>
-              {method.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+      <Text style={[typography.small, styles.muted, styles.sectionTitle]}>
+        Le paiement se fait sur la page sécurisée Bictorys à l'étape suivante (carte ou mobile money).
+      </Text>
 
       {error ? <Text style={[typography.small, styles.error]}>{error}</Text> : null}
 
@@ -173,24 +154,8 @@ const styles = StyleSheet.create({
   spaced: {
     marginBottom: spacing.md,
   },
-  paymentBlock: {
-    height: sizes.touchStress,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
-  },
-  paymentBlockSelected: {
-    borderColor: colors.trustBlue,
-    backgroundColor: colors.trustBlue,
-  },
-  paymentLabel: {
-    color: colors.darkText,
-  },
-  paymentLabelSelected: {
-    color: colors.white,
+  muted: {
+    color: colors.mutedText,
   },
   error: {
     color: colors.emergencyRed,

@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 import { OutlineButton, PrimaryButton, Screen } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
@@ -32,7 +33,17 @@ export default function PaymentScreen() {
     stopPolling();
     setStatus('starting');
     try {
-      await initiatePayment(token, orderId, phone);
+      const initiated = await initiatePayment(token, orderId, phone);
+      if (initiated.checkout_url) {
+        // Checkout hébergée Bictorys : on ouvre la page de paiement dans un
+        // navigateur intégré. Le retour (succès ou échec) redirige vers un
+        // lien fristaidmobile:// configuré côté serveur (voir
+        // successRedirectUrl/errorRedirectUrl dans services/payments.ts) ;
+        // le résultat renvoyé ici n'est qu'une indication UX pour fermer le
+        // navigateur — seul le polling ci-dessous, backé par
+        // GET /payments/:orderId/status, confirme réellement le paiement.
+        await WebBrowser.openAuthSessionAsync(initiated.checkout_url, 'fristaidmobile://');
+      }
       setStatus('processing');
       pollRef.current = setInterval(async () => {
         try {
@@ -75,7 +86,7 @@ export default function PaymentScreen() {
         <View style={styles.centered}>
           <Text style={[typography.h2, styles.centerText]}>Confirmer le paiement</Text>
           <Text style={[typography.body, styles.muted, styles.centerText]}>
-            {amountLabel} {amount ? 'seront demandés' : 'sera demandé'} au numéro {phone}.
+            {amountLabel} {amount ? 'seront demandés' : 'sera demandé'} sur la page de paiement sécurisée.
           </Text>
           <PrimaryButton label="Confirmer le paiement" onPress={start} style={styles.spaced} />
           <OutlineButton label="Annuler" onPress={() => router.back()} style={styles.spaced} />
@@ -91,7 +102,7 @@ export default function PaymentScreen() {
           <View style={styles.pulseDot} />
           <Text style={[typography.h2, styles.centerText]}>Paiement en cours…</Text>
           <Text style={[typography.body, styles.muted, styles.centerText]}>
-            Confirmez l'opération sur votre téléphone si une demande apparaît.
+            Nous confirmons votre paiement, merci de patienter quelques instants.
           </Text>
         </View>
       </Screen>

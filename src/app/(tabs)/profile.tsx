@@ -220,6 +220,14 @@ export default function ProfileScreen() {
         <Text style={[typography.small, styles.muted]}>Partager ma progression</Text>
       </Pressable>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/kits/orders')}
+        style={styles.leaderboardRow}>
+        <Text style={typography.bodyBold}>Mes commandes</Text>
+        <Text style={[typography.small, styles.muted]}>Suivre mes achats de kits de secours</Text>
+      </Pressable>
+
       <Pressable accessibilityRole="button" onPress={() => router.push('/contact')} style={styles.leaderboardRow}>
         <Text style={typography.bodyBold}>Nous contacter</Text>
         <Text style={[typography.small, styles.muted]}>Signaler un problème ou nous écrire sur WhatsApp</Text>

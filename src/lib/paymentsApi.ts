@@ -11,8 +11,11 @@ export type PaymentStatus = {
   transaction_id: string | null;
 };
 
+// checkout_url n'est renvoyé que si Bictorys est connecté côté backend
+// (sinon, simulateur interne, voir services/payments.ts côté serveur) —
+// null dans ce cas, l'écran reprend directement le polling.
 export function initiatePayment(token: string, orderId: string, phoneNumber: string) {
-  return apiFetch<{ status: PaymentStatusValue; transaction_id: string }>('/payments/initiate', {
+  return apiFetch<{ status: PaymentStatusValue; checkout_url: string | null }>('/payments/initiate', {
     method: 'POST',
     token,
     body: { order_id: orderId, phone_number: phoneNumber },
