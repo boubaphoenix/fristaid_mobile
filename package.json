@@ -8,6 +8,7 @@
     "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
     "@expo/ui": "~57.0.4",
     "@expo/vector-icons": "^15.0.2",
+    "@sentry/react-native": "^8.23.0",
     "expo": "~57.0.4",
     "expo-auth-session": "~57.0.5",
     "expo-clipboard": "~57.0.1",
@@ -53,7 +54,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "eas-build-on-success": "sentry-eas-build-on-success",
+    "eas-build-on-error": "sentry-eas-build-on-error",
+    "eas-build-on-complete": "sentry-eas-build-on-complete"
   },
   "private": true
 }

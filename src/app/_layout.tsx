@@ -2,6 +2,7 @@ import { Archivo_700Bold, Archivo_800ExtraBold, useFonts } from '@expo-google-fo
 import { IBMPlexMono_400Regular, IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono';
 import { IBMPlexSans_400Regular, IBMPlexSans_600SemiBold } from '@expo-google-fonts/ibm-plex-sans';
 import { Slot } from 'expo-router';
+import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
@@ -10,7 +11,15 @@ import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    tracesSampleRate: Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.2),
+    sendDefaultPii: false,
+  });
+}
+
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Archivo_700Bold,
     Archivo_800ExtraBold,
@@ -41,3 +50,5 @@ export default function RootLayout() {
     </EmergencyContactsProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

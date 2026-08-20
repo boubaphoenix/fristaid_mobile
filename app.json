@@ -72,6 +72,13 @@
           "photosPermission": "AfricaSecours a besoin d'accéder à vos photos pour enregistrer votre carte d'identité.",
           "savePhotosPermission": "AfricaSecours a besoin d'enregistrer votre carte d'identité dans vos photos."
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "africasecour",
+          "project": "fristaid-mobile"
+        }
       ]
     ],
     "experiments": {
