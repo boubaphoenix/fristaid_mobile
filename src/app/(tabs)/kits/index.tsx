@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { ResponsibilityNote, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
+import { KIT_SALES_ENABLED } from '@/constants/kits';
 import { type Kit, getKits } from '@/lib/kitsApi';
 
 // Écran 18 — catalogue des kits. Public (pas de token requis côté API),
@@ -58,9 +59,13 @@ export default function KitsCatalogueScreen() {
                 <Text style={[typography.body, styles.cardDescription]} numberOfLines={2}>
                   {kit.description}
                 </Text>
-                <Text style={[typography.dataLarge, styles.cardPrice]}>
-                  {kit.price_xof.toLocaleString('fr-FR')} FCFA
-                </Text>
+                {KIT_SALES_ENABLED ? (
+                  <Text style={[typography.dataLarge, styles.cardPrice]}>
+                    {kit.price_xof.toLocaleString('fr-FR')} FCFA
+                  </Text>
+                ) : (
+                  <Text style={[typography.small, styles.cardBadge]}>Bientôt disponible</Text>
+                )}
               </Pressable>
             ))}
           </>
@@ -93,5 +98,9 @@ const styles = StyleSheet.create({
   },
   cardPrice: {
     color: colors.white,
+  },
+  cardBadge: {
+    color: colors.white,
+    fontStyle: 'italic',
   },
 });

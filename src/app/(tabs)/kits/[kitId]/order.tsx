@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton, Screen, StateView, TextField } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
+import { KIT_SALES_ENABLED } from '@/constants/kits';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { type Kit, getKit } from '@/lib/kitsApi';
@@ -45,6 +46,27 @@ export default function OrderSummaryScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Vente désactivée (voir src/constants/kits.ts) : ferme l'accès direct à
+  // ce formulaire par lien profond/retour arrière, même si le bouton
+  // Commander qui y menait normalement est déjà caché sur la fiche kit.
+  useEffect(() => {
+    if (!KIT_SALES_ENABLED) {
+      if (kitId && isValidRecordId(kitId)) {
+        router.replace({ pathname: '/kits/[kitId]', params: { kitId } });
+      } else {
+        router.replace('/(tabs)/kits');
+      }
+    }
+  }, [kitId]);
+
+  if (!KIT_SALES_ENABLED) {
+    return (
+      <Screen mode="normal" scroll>
+        <StateView state="loading" />
+      </Screen>
+    );
+  }
 
   async function handleSubmit() {
     if (state.status !== 'success' || !token) return;

@@ -17,3 +17,7 @@ export const CONTACT_CATEGORIES: readonly ContactCategory[] = [
 export function buildGeneralContactMessage(categoryLabel: string): string {
   return `Bonjour, je vous contacte au sujet de : ${categoryLabel}\n\n`;
 }
+
+export function buildKitAvailabilityMessage(): string {
+  return 'Bonjour, je souhaite être informé(e) dès que le kit de premiers secours sera disponible à l\'achat.';
+}

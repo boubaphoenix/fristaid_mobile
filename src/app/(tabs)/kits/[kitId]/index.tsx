@@ -2,8 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PrimaryButton, Screen, StateView } from '@/components/ui';
+import { PrimaryButton, Screen, StateView, WhatsAppContactAction } from '@/components/ui';
 import { colors, radius, sizes, spacing, typography } from '@/constants/theme';
+import { KIT_COMING_SOON_MESSAGE, KIT_SALES_ENABLED } from '@/constants/kits';
+import { buildKitAvailabilityMessage } from '@/lib/contactMessages';
 import { type Kit, getKit } from '@/lib/kitsApi';
 import { isValidRecordId } from '@/lib/routeParams';
 
@@ -58,46 +60,60 @@ export default function KitDetailScreen() {
         <Text style={[typography.h1, styles.visualTitle]}>{kit.name}</Text>
       </View>
 
-      <Text style={[typography.dataLarge, styles.price]}>{kit.price_xof.toLocaleString('fr-FR')} FCFA</Text>
-      <Text style={[typography.body, styles.description]}>{kit.description}</Text>
+      {KIT_SALES_ENABLED ? (
+        <>
+          <Text style={[typography.dataLarge, styles.price]}>{kit.price_xof.toLocaleString('fr-FR')} FCFA</Text>
+          <Text style={[typography.body, styles.description]}>{kit.description}</Text>
 
-      <Text style={[typography.bodyBold, styles.sectionTitle]}>Contenu</Text>
-      <View style={styles.contentGrid}>
-        {kit.content_items.map((item) => (
-          <View key={item} style={styles.contentItem}>
-            <Text style={[typography.small, styles.contentText]}>• {item}</Text>
+          <Text style={[typography.bodyBold, styles.sectionTitle]}>Contenu</Text>
+          <View style={styles.contentGrid}>
+            {kit.content_items.map((item) => (
+              <View key={item} style={styles.contentItem}>
+                <Text style={[typography.small, styles.contentText]}>• {item}</Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
 
-      <Text style={[typography.bodyBold, styles.sectionTitle]}>Quantité</Text>
-      <View style={styles.stepper}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Diminuer la quantité"
-          onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-          disabled={quantity <= 1}
-          style={[styles.stepperButton, quantity <= 1 && styles.stepperButtonDisabled]}>
-          <Text style={[typography.h3, styles.stepperLabel]}>−</Text>
-        </Pressable>
-        <Text style={[typography.h3, styles.stepperValue]}>{quantity}</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Augmenter la quantité"
-          onPress={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
-          disabled={quantity >= MAX_QUANTITY}
-          style={[styles.stepperButton, quantity >= MAX_QUANTITY && styles.stepperButtonDisabled]}>
-          <Text style={[typography.h3, styles.stepperLabel]}>+</Text>
-        </Pressable>
-      </View>
+          <Text style={[typography.bodyBold, styles.sectionTitle]}>Quantité</Text>
+          <View style={styles.stepper}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Diminuer la quantité"
+              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              style={[styles.stepperButton, quantity <= 1 && styles.stepperButtonDisabled]}>
+              <Text style={[typography.h3, styles.stepperLabel]}>−</Text>
+            </Pressable>
+            <Text style={[typography.h3, styles.stepperValue]}>{quantity}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Augmenter la quantité"
+              onPress={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
+              disabled={quantity >= MAX_QUANTITY}
+              style={[styles.stepperButton, quantity >= MAX_QUANTITY && styles.stepperButtonDisabled]}>
+              <Text style={[typography.h3, styles.stepperLabel]}>+</Text>
+            </Pressable>
+          </View>
 
-      <PrimaryButton
-        label="Commander"
-        onPress={() =>
-          router.push({ pathname: '/kits/[kitId]/order', params: { kitId: kit.id, quantity: String(quantity) } })
-        }
-        style={styles.spaced}
-      />
+          <PrimaryButton
+            label="Commander"
+            onPress={() =>
+              router.push({ pathname: '/kits/[kitId]/order', params: { kitId: kit.id, quantity: String(quantity) } })
+            }
+            style={styles.spaced}
+          />
+        </>
+      ) : (
+        <>
+          <Text style={[typography.body, styles.description, styles.comingSoonText]}>{KIT_COMING_SOON_MESSAGE}</Text>
+          <View style={styles.spaced}>
+            <WhatsAppContactAction
+              message={buildKitAvailabilityMessage()}
+              label="Être prévenu(e) dès la disponibilité"
+            />
+          </View>
+        </>
+      )}
     </Screen>
   );
 }
@@ -121,6 +137,9 @@ const styles = StyleSheet.create({
   description: {
     color: colors.mutedText,
     marginTop: spacing.sm,
+  },
+  comingSoonText: {
+    marginTop: spacing.lg,
   },
   sectionTitle: {
     marginTop: spacing.lg,
