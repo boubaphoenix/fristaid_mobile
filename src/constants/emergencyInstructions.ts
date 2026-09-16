@@ -10,6 +10,10 @@ import type { CourseType } from '@/components/ui/CourseIcon';
 // défaut (pas de position demi-assise) : sans les questions de branchement
 // (écran 13, qui nécessitent une session), on ne peut pas garantir les
 // conditions qui autorisent cette position.
+//
+// v1.2 : road_accident et drowning reprennent la désignation d'un témoin
+// précis (au lieu d'un appel générique) — garder synchronisé avec
+// fristaid-backend/src/ai/scenarios.ts (BASE_SCENARIOS).
 export type EmergencyInstruction = {
   incident: CourseType;
   label: string;
@@ -45,8 +49,8 @@ export const EMERGENCY_INSTRUCTIONS: EmergencyInstruction[] = [
     label: 'Noyade',
     steps: [
       "N'entrez dans l'eau que si c'est sûr pour vous.",
-      'Alertez les secours immédiatement.',
-      "Aidez à distance si possible (objet flottant, perche).",
+      "Désignez si possible une personne précise pour alerter les secours (par exemple : « Vous, avec le tee-shirt bleu, appelez les secours »), sinon faites-le vous-même immédiatement.",
+      "Aidez à distance si possible (objet flottant, perche), ou désignez une personne précise pour aller chercher un objet flottant pendant que vous restez concentré(e) sur la victime.",
       "Ne prenez en charge la victime que si elle est accessible sans danger.",
     ],
     doNotDo: ['Ne vous mettez jamais en danger pour porter secours.'],
@@ -56,7 +60,7 @@ export const EMERGENCY_INSTRUCTIONS: EmergencyInstruction[] = [
     label: 'Accident de circulation',
     steps: [
       'Sécurisez la zone : feux de détresse, signalisation si possible.',
-      'Appelez les secours et donnez une localisation précise.',
+      "Désignez une personne précise parmi les témoins (par exemple : « Vous, avec le tee-shirt bleu, appelez les secours ») et donnez une localisation précise.",
       'Ne déplacez pas les blessés, sauf danger immédiat.',
       'Restez avec eux et suivez les consignes des secours au téléphone.',
     ],

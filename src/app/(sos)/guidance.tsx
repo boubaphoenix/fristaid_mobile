@@ -151,17 +151,31 @@ export default function SosGuidanceScreen() {
   }
 
   if (state.status === 'offline') {
+    // v1.2, section 1bis/9 : une seule instruction à la fois, confirmée
+    // avant la suivante — même patron que la branche 'success' plus bas
+    // (stepIndex + "C'est fait"), jamais la liste entière d'un coup.
+    const isLastOfflineStep = stepIndex === OFFLINE_FALLBACK_STEPS.length - 1;
     return (
       <Screen mode="stress" scroll>
         <EmergencyBanner phoneNumber={samuNumber} />
         <View style={styles.spaced}>
-          {OFFLINE_FALLBACK_STEPS.map((step) => (
-            <Text key={step} style={[typography.body, styles.whiteText, styles.spaced]}>
-              {step}
-            </Text>
-          ))}
+          <Text style={[typography.data, styles.stepLabel]}>
+            Étape {stepIndex + 1}/{OFFLINE_FALLBACK_STEPS.length}
+          </Text>
+          <ProgressSegments count={stepIndex + 1} total={OFFLINE_FALLBACK_STEPS.length} />
         </View>
-        <PrimaryButton label="Réessayer" onPress={load} stress style={styles.spaced} />
+        <Text style={[typography.h1, styles.whiteText, styles.spaced]}>{OFFLINE_FALLBACK_STEPS[stepIndex]}</Text>
+        {isLastOfflineStep ? (
+          <PrimaryButton label="Réessayer" onPress={load} stress style={styles.spaced} />
+        ) : (
+          <PrimaryButton
+            label="C'est fait"
+            onPress={() => setStepIndex((i) => i + 1)}
+            stress
+            variant="success"
+            style={styles.spaced}
+          />
+        )}
         <OutlineButton label="Fermer" onPress={() => router.back()} stress variant="danger" style={styles.spaced} />
       </Screen>
     );
