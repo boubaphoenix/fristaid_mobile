@@ -78,7 +78,10 @@
           "organization": "africasecour",
           "project": "fristaid-mobile"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
