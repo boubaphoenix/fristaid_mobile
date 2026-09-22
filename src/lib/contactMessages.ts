@@ -21,3 +21,7 @@ export function buildGeneralContactMessage(categoryLabel: string): string {
 export function buildKitAvailabilityMessage(): string {
   return 'Bonjour, je souhaite être informé(e) dès que le kit de premiers secours sera disponible à l\'achat.';
 }
+
+export function buildProfileInfoErrorMessage(): string {
+  return 'Bonjour, je souhaite signaler une erreur sur mes informations de profil (nom ou numéro de téléphone).';
+}

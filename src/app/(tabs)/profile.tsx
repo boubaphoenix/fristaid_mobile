@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { OutlineButton, PrimaryButton, Screen, StateView, TextField } from '@/components/ui';
+import { OutlineButton, Screen, StateView, WhatsAppContactAction } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 import { type AuthUser } from '@/lib/authApi';
 import { confirmAlert } from '@/lib/confirmAlert';
+import { buildProfileInfoErrorMessage } from '@/lib/contactMessages';
 import { initials } from '@/lib/initials';
 import { getProfile, updateProfile, updateReminders } from '@/lib/profileApi';
 
@@ -19,10 +20,6 @@ export default function ProfileScreen() {
   const [state, setState] = useState<{ status: 'loading' } | { status: 'error' } | { status: 'success'; user: AuthUser }>(
     { status: 'loading' },
   );
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [isTogglingReminders, setIsTogglingReminders] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -30,27 +27,9 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (!token) return;
     getProfile(token)
-      .then((user) => {
-        setState({ status: 'success', user });
-        setFullName(user.profile.full_name ?? '');
-        setPhone(user.profile.phone ?? '');
-      })
+      .then((user) => setState({ status: 'success', user }))
       .catch(() => setState({ status: 'error' }));
   }, [token]);
-
-  async function handleSave() {
-    if (!token) return;
-    setSaveError(null);
-    setIsSaving(true);
-    try {
-      const user = await updateProfile(token, { full_name: fullName || undefined, phone: phone || undefined });
-      setState({ status: 'success', user });
-    } catch (err) {
-      setSaveError(err instanceof ApiError ? err.message : 'Impossible de mettre à jour le profil pour le moment.');
-    } finally {
-      setIsSaving(false);
-    }
-  }
 
   async function handlePickAvatar() {
     if (!token) return;
@@ -171,22 +150,19 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      <TextField label="Nom complet" value={fullName} onChangeText={setFullName} style={styles.spaced} />
-      <TextField
-        label="Téléphone"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-        placeholder="+225 07 00 00 00 00"
-        style={styles.spaced}
-      />
-      {saveError ? <Text style={styles.error}>{saveError}</Text> : null}
-      <PrimaryButton
-        label={isSaving ? 'Enregistrement...' : 'Enregistrer'}
-        onPress={handleSave}
-        loading={isSaving}
-        style={styles.spaced}
-      />
+      <View style={styles.spaced}>
+        <Text style={[typography.bodyBold, styles.lockedLabel]}>Nom complet</Text>
+        <Text style={[typography.body, styles.lockedValue]}>{user.profile.full_name || '—'}</Text>
+        <Text style={[typography.bodyBold, styles.lockedLabel, styles.spaced]}>Téléphone</Text>
+        <Text style={[typography.body, styles.lockedValue]}>{user.profile.phone || '—'}</Text>
+        <Text style={[typography.caption, styles.muted, styles.spaced]}>
+          Le nom et le téléphone ne sont modifiables qu'à l'inscription.
+        </Text>
+        <WhatsAppContactAction
+          message={buildProfileInfoErrorMessage()}
+          label="Signaler une erreur"
+        />
+      </View>
 
       <View style={styles.remindersRow}>
         <View style={styles.remindersText}>
@@ -272,6 +248,13 @@ const styles = StyleSheet.create({
   },
   spaced: {
     marginBottom: spacing.md,
+  },
+  lockedLabel: {
+    color: colors.darkText,
+    marginBottom: spacing.xs,
+  },
+  lockedValue: {
+    color: colors.darkText,
   },
   spacedLg: {
     marginTop: spacing.xl,

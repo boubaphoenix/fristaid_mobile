@@ -5,7 +5,9 @@ export function getProfile(token: string) {
   return apiFetch<AuthUser>('/profile/me', { token });
 }
 
-export type UpdateProfileInput = { full_name?: string; phone?: string; avatar_url?: string | null };
+// full_name/phone sont verrouillés après l'inscription (backend
+// validators/profile.ts) — plus jamais envoyés depuis ce fichier.
+export type UpdateProfileInput = { avatar_url?: string | null };
 
 export function updateProfile(token: string, input: UpdateProfileInput) {
   return apiFetch<AuthUser>('/profile/me', { method: 'PATCH', token, body: input });
