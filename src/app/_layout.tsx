@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
+import { Screen, StateView } from '@/components/ui';
 import { AuthProvider } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
@@ -17,6 +18,24 @@ if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
     tracesSampleRate: Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.2),
     sendDefaultPii: false,
   });
+}
+
+// Filet de sécurité au-delà des écrans qui gèrent déjà leurs propres
+// erreurs réseau (via StateView) : une erreur de rendu React non
+// rattrapée ailleurs (crash) affiche ceci au lieu d'un écran blanc.
+// Sentry.wrap (plus bas) capture toujours l'événement ; ce composant
+// ajoute juste une interface de secours avec un bouton "Réessayer".
+function ErrorFallback({ resetError }: { resetError: () => void }) {
+  return (
+    <Screen mode="normal">
+      <StateView
+        state="error"
+        title="Une erreur inattendue s'est produite"
+        message="L'application a rencontré un problème. Réessayez — si ça persiste, redémarrez l'application."
+        onRetry={resetError}
+      />
+    </Screen>
+  );
 }
 
 function RootLayout() {
@@ -45,7 +64,9 @@ function RootLayout() {
   return (
     <EmergencyContactsProvider>
       <AuthProvider>
-        <Slot />
+        <Sentry.ErrorBoundary fallback={ErrorFallback}>
+          <Slot />
+        </Sentry.ErrorBoundary>
       </AuthProvider>
     </EmergencyContactsProvider>
   );
