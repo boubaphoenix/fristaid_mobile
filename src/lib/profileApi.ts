@@ -20,3 +20,11 @@ export function updateReminders(token: string, remindersEnabled: boolean) {
     body: { reminders_enabled: remindersEnabled },
   });
 }
+
+// Suppression réelle du compte (conformité Google Play) — voir
+// fristaid-backend/src/routes/profile.ts, DELETE /profile/me. Répond 204
+// sans corps ; l'appelant doit ensuite déconnecter localement (le token
+// devient immédiatement invalide côté serveur, voir requireAuth.ts).
+export function deleteAccount(token: string) {
+  return apiFetch<void>('/profile/me', { method: 'DELETE', token });
+}

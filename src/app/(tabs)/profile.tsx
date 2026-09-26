@@ -12,7 +12,7 @@ import { type AuthUser } from '@/lib/authApi';
 import { confirmAlert } from '@/lib/confirmAlert';
 import { buildProfileInfoErrorMessage } from '@/lib/contactMessages';
 import { initials } from '@/lib/initials';
-import { getProfile, updateProfile, updateReminders } from '@/lib/profileApi';
+import { deleteAccount, getProfile, updateProfile, updateReminders } from '@/lib/profileApi';
 
 // Écran 23 — profil et réglages.
 export default function ProfileScreen() {
@@ -23,6 +23,8 @@ export default function ProfileScreen() {
   const [isTogglingReminders, setIsTogglingReminders] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -80,6 +82,30 @@ export default function ProfileScreen() {
       { text: 'Rester connecté', style: 'cancel' },
       { text: 'Se déconnecter', style: 'destructive', onPress: signOut },
     ]);
+  }
+
+  function handleDeleteAccountPress() {
+    confirmAlert(
+      'Supprimer mon compte',
+      'Cette action est définitive et irréversible : votre profil, votre progression, vos sessions SOS et vos données personnelles seront supprimés. Voulez-vous continuer ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer mon compte', style: 'destructive', onPress: handleDeleteAccount },
+      ],
+    );
+  }
+
+  async function handleDeleteAccount() {
+    if (!token) return;
+    setDeleteError(null);
+    setIsDeletingAccount(true);
+    try {
+      await deleteAccount(token);
+      await signOut();
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : "Impossible de supprimer le compte pour le moment.");
+      setIsDeletingAccount(false);
+    }
   }
 
   async function handleToggleReminders(value: boolean) {
@@ -210,6 +236,15 @@ export default function ProfileScreen() {
       </Pressable>
 
       <OutlineButton label="Se déconnecter" onPress={handleSignOutPress} variant="danger" style={styles.spacedLg} />
+
+      {deleteError ? <Text style={[typography.small, styles.error, styles.deleteAccountSpacing]}>{deleteError}</Text> : null}
+      <OutlineButton
+        label={isDeletingAccount ? 'Suppression...' : 'Supprimer mon compte'}
+        onPress={handleDeleteAccountPress}
+        variant="danger"
+        disabled={isDeletingAccount}
+        style={styles.deleteAccountSpacing}
+      />
     </Screen>
   );
 }
@@ -259,6 +294,9 @@ const styles = StyleSheet.create({
   spacedLg: {
     marginTop: spacing.xl,
     marginBottom: spacing.lg,
+  },
+  deleteAccountSpacing: {
+    marginTop: spacing.md,
   },
   muted: {
     color: colors.mutedText,
