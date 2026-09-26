@@ -10,6 +10,19 @@ if (!__DEV__ && !API_BASE_URL.startsWith('https://')) {
   throw new Error(`EXPO_PUBLIC_API_URL doit utiliser https:// en production (reçu : ${API_BASE_URL})`);
 }
 
+// Un token expiré/invalide (session JWT arrivée en fin de vie, ~30j) ne
+// doit jamais laisser l'utilisateur bloqué sur un écran d'erreur qui se
+// contente de rejouer la même requête avec le même token mort. AuthContext
+// enregistre ici la fonction qui efface le token — dès qu'un 401 arrive
+// pour une requête authentifiée, elle est appelée, et la garde de
+// navigation déjà en place ((tabs)/_layout.tsx) renvoie automatiquement
+// vers l'écran de connexion.
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: () => void) {
+  unauthorizedHandler = handler;
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -75,6 +88,15 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
         : (data?.error?.message ?? "Une erreur inattendue s'est produite.");
 
     const message = frenchErrorMap[code] || rawMessage;
+
+    // 401 sur une requête authentifiée == requireAuth a rejeté le token
+    // (backend src/middleware/requireAuth.ts) : jamais renvoyé pour une
+    // autre raison. Sans token envoyé (ex. tentative de connexion), un 401
+    // veut juste dire "identifiants invalides" — pas une session à clore.
+    if (response.status === 401 && options.token) {
+      unauthorizedHandler?.();
+    }
+
     throw new ApiError(response.status, code, message);
   }
 

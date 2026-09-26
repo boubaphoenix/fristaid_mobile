@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { tokenStorage } from './tokenStorage';
+import { setUnauthorizedHandler } from '@/lib/api';
 import { logout as logoutApi } from '@/lib/authApi';
 
 const TOKEN_KEY = 'africasecour_auth_token';
@@ -10,6 +11,12 @@ type AuthContextValue = {
   isLoading: boolean;
   signIn: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  // Vrai juste après une déconnexion automatique (token expiré/invalide
+  // rejeté par l'API, voir setUnauthorizedHandler) — l'écran de connexion
+  // l'affiche une fois puis l'efface, pour ne pas persister après un
+  // login/logout normal ultérieur.
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -21,6 +28,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
     tokenStorage
@@ -29,10 +37,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  // Enregistré une seule fois : un 401 sur n'importe quel appel API
+  // authentifié (token rejeté par requireAuth côté backend, voir
+  // src/lib/api.ts) efface le token directement — la garde de navigation
+  // existante ((tabs)/_layout.tsx, redirige si !token) renvoie alors seule
+  // vers /(auth)/login, sans appel réseau supplémentaire (token déjà
+  // invalide côté serveur).
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      tokenStorage.deleteItemAsync(TOKEN_KEY);
+      setToken(null);
+      setSessionExpired(true);
+    });
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       token,
       isLoading,
+      sessionExpired,
+      clearSessionExpired: () => setSessionExpired(false),
       signIn: async (newToken: string) => {
         await tokenStorage.setItemAsync(TOKEN_KEY, newToken);
         setToken(newToken);
@@ -47,7 +71,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setToken(null);
       },
     }),
-    [token, isLoading],
+    [token, isLoading, sessionExpired],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

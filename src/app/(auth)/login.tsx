@@ -1,5 +1,5 @@
 import { Link, router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { GoogleButton, LogoMark, OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
@@ -14,13 +14,23 @@ import { useGoogleSignIn } from '@/lib/googleAuth';
 // ("Consignes sans compte" vers l'écran d'urgence sans auth) sans changer
 // la soumission.
 export default function LoginScreen() {
-  const { signIn } = useAuth();
+  const { signIn, sessionExpired, clearSessionExpired } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  // Capturé une seule fois au montage (valeur présente juste après la
+  // déconnexion automatique déclenchée par un 401, voir src/lib/api.ts) —
+  // le flag partagé est effacé aussitôt pour ne jamais réapparaître après
+  // une déconnexion manuelle normale (Profil > Se déconnecter).
+  const [showSessionExpiredBanner] = useState(() => sessionExpired);
+  useEffect(() => {
+    if (sessionExpired) clearSessionExpired();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit() {
     setError(null);
@@ -61,6 +71,11 @@ export default function LoginScreen() {
         <LogoMark size={48} variant="onCream" />
       </View>
       <Text style={[typography.h2, styles.spaced]}>Connexion</Text>
+      {showSessionExpiredBanner ? (
+        <Text style={[typography.small, styles.sessionExpiredBanner, styles.spaced]}>
+          Votre session a expiré. Reconnectez-vous.
+        </Text>
+      ) : null}
       <TextField
         label="E-mail"
         value={email}
@@ -150,6 +165,14 @@ const styles = StyleSheet.create({
   },
   googleError: {
     color: colors.emergencyRed,
+  },
+  sessionExpiredBanner: {
+    color: colors.darkText,
+    backgroundColor: colors.warningBg,
+    borderColor: colors.warningOrange,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.sm,
   },
   googleDisclaimer: {
     textAlign: 'center',
