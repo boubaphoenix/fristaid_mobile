@@ -34,8 +34,13 @@
       ]
     },
     "web": {
+      "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "AfricaSecours",
+      "shortName": "AfricaSecours",
+      "themeColor": "#173B2E",
+      "backgroundColor": "#173B2E"
     },
     "plugins": [
       "expo-router",
