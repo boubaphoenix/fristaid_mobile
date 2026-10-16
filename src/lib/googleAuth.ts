@@ -3,7 +3,13 @@ import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
-WebBrowser.maybeCompleteAuthSession();
+// skipRedirectCheck : évite un rejet silencieux quand l'URL de retour
+// calculée en interne par expo-auth-session ne correspond pas exactement
+// à l'URL de redirection enregistrée (observé sur web — la popup finit
+// par afficher l'app entière au lieu de se refermer et prévenir la
+// fenêtre d'origine). Le paramètre `state` de Google protège déjà contre
+// la fraude, cette vérification de correspondance d'URL est redondante.
+WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
 
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
