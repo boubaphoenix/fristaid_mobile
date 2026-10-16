@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { OutlineButton, Screen, StateView, WhatsAppContactAction } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -234,6 +235,8 @@ export default function ProfileScreen() {
         <Text style={typography.bodyBold}>Nous contacter</Text>
         <Text style={[typography.small, styles.muted]}>Signaler un problème ou nous écrire sur WhatsApp</Text>
       </Pressable>
+
+      <InstallPrompt variant="settings" />
 
       <OutlineButton label="Se déconnecter" onPress={handleSignOutPress} variant="danger" style={styles.spacedLg} />
 

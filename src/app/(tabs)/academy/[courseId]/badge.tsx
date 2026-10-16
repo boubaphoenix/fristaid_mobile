@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { PrimaryButton, ResponsibilityNote, Screen } from '@/components/ui';
 import { spacing, typography } from '@/constants/theme';
 
@@ -30,6 +31,8 @@ export default function BadgeAwardedScreen() {
 
       <PrimaryButton label="Voir mon Passeport" onPress={() => router.push('/passport')} style={styles.spaced} />
       <PrimaryButton label="Retour au cours" onPress={() => router.back()} variant="brand" style={styles.spaced} />
+
+      <InstallPrompt variant="banner" />
     </Screen>
   );
 }

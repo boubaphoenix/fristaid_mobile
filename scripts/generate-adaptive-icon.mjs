@@ -14,6 +14,7 @@
 //   node scripts/generate-adaptive-icon.mjs --foreground path/to/mark.png --background "#173B2E"
 //     -> mark.png must already be transparent around the shape
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -21,6 +22,7 @@ import sharp from 'sharp';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const IMAGES_DIR = path.join(ROOT, 'assets/images');
+const PUBLIC_DIR = path.join(ROOT, 'public');
 
 const CANVAS_SIZE = 1024; // master export resolution; Expo/EAS derive every mipmap density from this
 const ICON_DP = 108;
@@ -190,8 +192,24 @@ async function main() {
     .toBuffer();
   await sharp(splash).toFile(path.join(IMAGES_DIR, 'splash-icon.png'));
 
+  // PWA manifest icons: same "flatten on brand background" treatment as
+  // icon.png above — a maskable icon and an adaptive icon are cropped by
+  // the OS the same way (a circle, a squircle, ...), so the content must
+  // stay within the same 66/108 safe zone already computed for Android.
+  fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+  const pwa192 = await placeOnCanvas(mark, 192, 0.62, bgOpaque);
+  await sharp(pwa192).flatten({ background: bgOpaque }).toFile(path.join(PUBLIC_DIR, 'pwa-icon-192.png'));
+
+  const pwa512 = await placeOnCanvas(mark, 512, 0.62, bgOpaque);
+  await sharp(pwa512).flatten({ background: bgOpaque }).toFile(path.join(PUBLIC_DIR, 'pwa-icon-512.png'));
+
+  const pwaMaskable512 = await placeOnCanvas(mark, 512, SAFE_ZONE_RATIO, bgOpaque);
+  await sharp(pwaMaskable512)
+    .flatten({ background: bgOpaque })
+    .toFile(path.join(PUBLIC_DIR, 'pwa-icon-maskable-512.png'));
+
   console.log(`Background color for app.json (adaptiveIcon.backgroundColor / splash backgroundColor): #${[bg.r, bg.g, bg.b].map((c) => c.toString(16).padStart(2, '0')).join('')}`);
-  console.log('Done — wrote icon.png, favicon.png, splash-icon.png, android-icon-{foreground,background,monochrome}.png');
+  console.log('Done — wrote icon.png, favicon.png, splash-icon.png, android-icon-{foreground,background,monochrome}.png, public/pwa-icon-{192,512,maskable-512}.png');
 }
 
 main().catch((err) => {
