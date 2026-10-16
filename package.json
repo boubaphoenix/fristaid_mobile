@@ -46,13 +46,21 @@
   "devDependencies": {
     "@expo/ngrok": "^4.1.0",
     "@types/react": "~19.2.2",
+    "esbuild": "^0.28.2",
     "sharp": "^0.35.4",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "workbox-background-sync": "^7.4.1",
+    "workbox-build": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "generate:icons": "node ./scripts/generate-adaptive-icon.mjs",
+    "build:web": "expo export -p web --clear && node ./scripts/build-sw.mjs",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

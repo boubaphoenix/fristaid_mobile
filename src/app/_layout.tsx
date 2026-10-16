@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { Screen, StateView } from '@/components/ui';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { AuthProvider } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
@@ -90,6 +91,7 @@ function RootLayout() {
     <EmergencyContactsProvider>
       <AuthProvider>
         <Sentry.ErrorBoundary fallback={ErrorFallback}>
+          <UpdateBanner />
           <Slot />
         </Sentry.ErrorBoundary>
       </AuthProvider>
