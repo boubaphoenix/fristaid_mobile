@@ -179,7 +179,7 @@ export default function IdentityCardScreen() {
             <View style={styles.cardFrame}>
               <View style={styles.cardHeaderBar}>
                 <View style={styles.cardHeaderBrand}>
-                  <LogoMark size={24} variant="onForest" />
+                  <LogoMark size={24} />
                   <Wordmark size={13} variant="onForest" />
                 </View>
                 <LogoSeal size={64} />

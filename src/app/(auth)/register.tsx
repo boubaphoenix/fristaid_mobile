@@ -95,7 +95,7 @@ export default function RegisterScreen() {
   return (
     <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.logoHeader}>
-        <LogoMark size={48} variant="onCream" />
+        <LogoMark size={48} />
       </View>
       <View style={styles.headerRow}>
         <Text style={[typography.h2, styles.spaced]}>Créer un compte</Text>

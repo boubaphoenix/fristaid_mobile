@@ -1,19 +1,10 @@
+import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect, Text as SvgText, TextPath } from 'react-native-svg';
 
 import { brand, colors, fonts, spacing, typography } from '@/constants/theme';
 
 export type LogoVariant = 'onCream' | 'onForest';
-
-const BADGE_COLOR: Record<LogoVariant, string> = {
-  onCream: brand.forest,
-  onForest: brand.sage,
-};
-
-const INNER_CIRCLE_COLOR: Record<LogoVariant, string> = {
-  onCream: brand.creamCard,
-  onForest: brand.forest,
-};
 
 const AFRICA_TEXT_COLOR: Record<LogoVariant, string> = {
   onCream: brand.forest,
@@ -22,23 +13,23 @@ const AFRICA_TEXT_COLOR: Record<LogoVariant, string> = {
 
 type LogoMarkProps = {
   size?: number;
-  variant?: LogoVariant;
 };
 
-// Approximation vectorielle du badge (planche de marque Banani) : croix
-// arrondie + pointe basse évoquant un pin/bouclier de secours, inscrite
-// dans un cercle intérieur, le tout dans un badge rond. Recréé en SVG car
-// aucun fichier source (PNG/SVG exporté) n'est disponible — remplacer ce
-// composant si les vrais assets sont fournis un jour.
-export function LogoMark({ size = 96, variant = 'onCream' }: LogoMarkProps) {
+// Icône de marque réelle (bouclier + croix), générée par
+// scripts/generate-adaptive-icon.mjs depuis assets/source/logo.png — le
+// même fichier qui produit l'icône d'app et les icônes PWA, pour garantir
+// que le logo affiché dans l'app soit identique partout. Le fond forêt est
+// déjà intégré à l'image : il se fond dans les écrans à fond forêt et
+// contraste tel quel sur les écrans à fond clair, donc plus besoin de
+// variante de couleur ici (contrairement à l'ancienne version dessinée à
+// la main).
+export function LogoMark({ size = 96 }: LogoMarkProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100">
-      <Circle cx={50} cy={50} r={50} fill={BADGE_COLOR[variant]} />
-      <Circle cx={50} cy={50} r={38} fill={INNER_CIRCLE_COLOR[variant]} />
-      <Rect x={44} y={30} width={12} height={32} rx={6} fill={brand.terracotta} />
-      <Rect x={32} y={38} width={36} height={12} rx={6} fill={brand.terracotta} />
-      <Path d="M42,58 L58,58 L50,73 Z" fill={brand.terracotta} />
-    </Svg>
+    <Image
+      source={require('../../../assets/images/icon.png')}
+      style={{ width: size, height: size, borderRadius: size * 0.22 }}
+      contentFit="cover"
+    />
   );
 }
 
@@ -95,7 +86,7 @@ export function LogoLockup({
 }: LogoLockupProps) {
   return (
     <View style={styles.lockup}>
-      <LogoMark size={markSize} variant={variant} />
+      <LogoMark size={markSize} />
       <Wordmark size={wordmarkSize} variant={variant} />
       {tagline ? (
         <Text

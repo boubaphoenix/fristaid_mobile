@@ -38,7 +38,7 @@ export default function ResetPasswordScreen() {
   return (
     <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.logoHeader}>
-        <LogoMark size={48} variant="onCream" />
+        <LogoMark size={48} />
       </View>
       <Text style={[typography.h2, styles.spaced]}>Nouveau mot de passe</Text>
 

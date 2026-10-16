@@ -30,7 +30,7 @@ export default function ForgotPasswordScreen() {
   return (
     <Screen mode="normal" scroll keyboardAvoiding>
       <View style={styles.logoHeader}>
-        <LogoMark size={48} variant="onCream" />
+        <LogoMark size={48} />
       </View>
       <Text style={[typography.h2, styles.spaced]}>Mot de passe oublié</Text>
 
