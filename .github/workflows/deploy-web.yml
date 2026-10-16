@@ -1,0 +1,59 @@
+name: Deploy web (PWA) to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "assets/**"
+      - "public/**"
+      - "app.json"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build web app
+        run: npm run build:web
+        env:
+          # Même rôle que .env.production.local en local : force le build
+          # à utiliser le vrai backend, jamais localhost (voir garde dans
+          # src/lib/api.ts).
+          EXPO_PUBLIC_API_URL: https://api.africasecour.com
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID }}
+          EXPO_PUBLIC_WHATSAPP_NUMBER: ${{ secrets.EXPO_PUBLIC_WHATSAPP_NUMBER }}
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
+          EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: "0.2"
+
+      # Filet de sécurité : le build ne doit jamais contenir de secret
+      # serveur (clé privée, URL de base de données...). Ces motifs ne
+      # devraient jamais apparaître dans du code web public.
+      - name: Check dist/ for leaked secrets
+        run: |
+          if grep -rEl "DATABASE_URL=|sk_live_|sk_test_|BICTORYS_API_KEY|CLOUDINARY_API_SECRET|JWT_SECRET" dist/ ; then
+            echo "::error::Un secret potentiel a été trouvé dans dist/ — build bloqué."
+            exit 1
+          fi
+          echo "Aucun secret détecté dans dist/."
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy

@@ -54,13 +54,15 @@
     "workbox-expiration": "^7.4.1",
     "workbox-precaching": "^7.4.1",
     "workbox-routing": "^7.4.1",
-    "workbox-strategies": "^7.4.1"
+    "workbox-strategies": "^7.4.1",
+    "wrangler": "^4.151.1"
   },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "generate:icons": "node ./scripts/generate-adaptive-icon.mjs",
     "build:web": "expo export -p web --clear && node ./scripts/build-sw.mjs",
+    "deploy:web": "npm run build:web && wrangler deploy",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

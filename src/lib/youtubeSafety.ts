@@ -6,5 +6,9 @@ export function isValidYoutubeVideoId(value: unknown): value is string {
 }
 
 export function buildYoutubeEmbedUrl(videoId: string): string | null {
-  return isValidYoutubeVideoId(videoId) ? `https://www.youtube.com/embed/${videoId}` : null;
+  // youtube-nocookie.com : variante de YouTube qui ne pose pas de cookies
+  // de suivi tant que l'utilisateur n'a pas interagi avec la vidéo (web
+  // uniquement — le lecteur natif react-native-youtube-iframe ne prend
+  // qu'un videoId, pas cette URL).
+  return isValidYoutubeVideoId(videoId) ? `https://www.youtube-nocookie.com/embed/${videoId}` : null;
 }
