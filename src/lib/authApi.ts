@@ -41,6 +41,17 @@ export function logout(token: string) {
   return apiFetch<{ success: true }>('/auth/logout', { method: 'POST', token });
 }
 
+// Web uniquement, appelé une fois au démarrage d'AuthContext : lit le
+// refresh token dans le cookie HttpOnly (jamais envoyé explicitement ici,
+// c'est le navigateur qui le fait via credentials: 'include') et renvoie un
+// nouveau token d'accès. Une erreur ici veut simplement dire "pas de
+// session active" — traité comme tel par l'appelant, quel que soit le
+// code d'erreur exact (401 session absente, 403 CSRF si aucun cookie du
+// tout n'existe encore).
+export function refreshWebSession() {
+  return apiFetch<{ token: string }>('/auth/refresh', { method: 'POST' });
+}
+
 export function fetchMe(token: string) {
   return apiFetch<AuthUser>('/auth/me', { token });
 }

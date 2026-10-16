@@ -1,4 +1,4 @@
-import { tokenStorage } from '@/context/tokenStorage';
+import { keyValueStorage } from '@/lib/keyValueStorage';
 
 // Numéros d'urgence — dashboard admin (voir plan dashboard admin,
 // §Numéros d'urgence, priorité maximale). Endpoint public (pas de
@@ -26,7 +26,7 @@ export const FALLBACK_EMERGENCY_CONTACTS: Record<string, string> = { samu: '185'
 type EmergencyContactsCache = { contacts: Record<string, string>; cached_at: string };
 
 export async function readCachedEmergencyContacts(): Promise<Record<string, string> | null> {
-  const raw = await tokenStorage.getItemAsync(CACHE_KEY).catch(() => null);
+  const raw = await keyValueStorage.getItemAsync(CACHE_KEY).catch(() => null);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as EmergencyContactsCache;
@@ -38,7 +38,7 @@ export async function readCachedEmergencyContacts(): Promise<Record<string, stri
 
 async function writeCachedEmergencyContacts(contacts: Record<string, string>): Promise<void> {
   const payload: EmergencyContactsCache = { contacts, cached_at: new Date().toISOString() };
-  await tokenStorage.setItemAsync(CACHE_KEY, JSON.stringify(payload)).catch(() => {});
+  await keyValueStorage.setItemAsync(CACHE_KEY, JSON.stringify(payload)).catch(() => {});
 }
 
 // Récupère les numéros à jour depuis l'API, met le cache local à jour en

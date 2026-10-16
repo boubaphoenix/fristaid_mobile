@@ -1,8 +1,52 @@
+import { Platform } from 'react-native';
+
 // Le mobile ne parle jamais à Neon directement — uniquement à cette API
 // (PRD §9/§17). En dev, l'API tourne en local ; EXPO_PUBLIC_API_URL permet
 // de pointer vers un autre hôte (téléphone physique, staging) sans changer
 // le code. Rien d'ici n'est un secret : c'est juste une URL publique.
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+
+const isWeb = Platform.OS === 'web';
+
+// Web uniquement : le cookie CSRF (non-HttpOnly, lisible en JS — voir
+// fristaid-backend/src/lib/webAuthCookies.ts) doit être recopié dans un
+// en-tête sur chaque requête mutante, pour prouver que la requête vient
+// bien de notre propre JS et pas d'un site tiers qui ferait voyager le
+// cookie HttpOnly automatiquement sans pouvoir le lire.
+function readCsrfCookie(): string | null {
+  if (!isWeb || typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|; )africasecour_csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+const MUTATING_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
+
+// Évite que plusieurs 401 concurrents (plusieurs requêtes en vol au moment
+// où le token d'accès expire) ne déclenchent plusieurs appels /auth/refresh
+// en parallèle — un seul suffit, les autres attendent son résultat.
+let refreshInFlight: Promise<string | null> | null = null;
+
+async function refreshAccessTokenOnce(): Promise<string | null> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'X-Client': 'web', 'X-CSRF-Token': readCsrfCookie() ?? '' },
+        });
+        if (!res.ok) return null;
+        const data = (await res.json().catch(() => null)) as { token?: string } | null;
+        return data?.token ?? null;
+      } catch {
+        return null;
+      }
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
 
 // Une EXPO_PUBLIC_API_URL mal configurée en production (http:// au lieu de
 // https://) enverrait le token d'authentification en clair sur le réseau.
@@ -21,6 +65,17 @@ let unauthorizedHandler: (() => void) | null = null;
 
 export function setUnauthorizedHandler(handler: () => void) {
   unauthorizedHandler = handler;
+}
+
+// Web uniquement : quand apiFetch rafraîchit silencieusement le token
+// d'accès (cookie HttpOnly), AuthContext doit mettre à jour le token qu'il
+// garde en mémoire — sinon le prochain appel renverrait l'ancien token déjà
+// expiré et déclencherait un nouveau rafraîchissement à chaque requête au
+// lieu d'une seule fois toutes les ~15 min.
+let tokenRefreshedHandler: ((token: string) => void) | null = null;
+
+export function setTokenRefreshedHandler(handler: (token: string) => void) {
+  tokenRefreshedHandler = handler;
 }
 
 export class ApiError extends Error {
@@ -59,19 +114,40 @@ const frenchErrorMap: Record<string, string> = {
   VALIDATION_FAILED: 'Données invalides. Veuillez vérifier les informations saisies.',
 };
 
-export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-  let response: Response;
+async function doFetch(path: string, options: ApiFetchOptions, token: string | null | undefined): Promise<Response> {
+  const method = options.method ?? 'GET';
+  const isMutating = MUTATING_METHODS.has(method);
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      method: options.method ?? 'GET',
+    return await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      ...(isWeb ? { credentials: 'include' } : {}),
       headers: {
         'Content-Type': 'application/json',
-        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        ...(isWeb ? { 'X-Client': 'web' } : {}),
+        ...(isWeb && isMutating ? { 'X-CSRF-Token': readCsrfCookie() ?? '' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Impossible de contacter le serveur backend. Vérifiez votre connexion.');
+  }
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+  let response = await doFetch(path, options, options.token);
+
+  // Sur web, un 401 peut simplement vouloir dire que le token d'accès de
+  // 15 min a expiré — on tente un rafraîchissement silencieux (cookie
+  // HttpOnly) et on rejoue la requête une seule fois avant de considérer la
+  // session comme vraiment morte. Le mobile n'a pas ce mécanisme (token de
+  // 30 jours, pas de refresh token) : il va directement à unauthorizedHandler.
+  if (response.status === 401 && options.token && isWeb) {
+    const newToken = await refreshAccessTokenOnce();
+    if (newToken) {
+      tokenRefreshedHandler?.(newToken);
+      response = await doFetch(path, options, newToken);
+    }
   }
 
   const data = await response.json().catch(() => null);
@@ -93,6 +169,8 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     // (backend src/middleware/requireAuth.ts) : jamais renvoyé pour une
     // autre raison. Sans token envoyé (ex. tentative de connexion), un 401
     // veut juste dire "identifiants invalides" — pas une session à clore.
+    // Sur web, on arrive ici seulement si le rafraîchissement a aussi
+    // échoué (session vraiment expirée, pas juste le token d'accès).
     if (response.status === 401 && options.token) {
       unauthorizedHandler?.();
     }

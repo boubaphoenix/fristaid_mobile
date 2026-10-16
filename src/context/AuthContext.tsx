@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
+import { Platform } from 'react-native';
 
 import { tokenStorage } from './tokenStorage';
-import { setUnauthorizedHandler } from '@/lib/api';
-import { logout as logoutApi } from '@/lib/authApi';
+import { setTokenRefreshedHandler, setUnauthorizedHandler } from '@/lib/api';
+import { logout as logoutApi, refreshWebSession } from '@/lib/authApi';
 
 const TOKEN_KEY = 'africasecour_auth_token';
+const isWeb = Platform.OS === 'web';
 
 type AuthContextValue = {
   token: string | null;
@@ -31,6 +33,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
+    if (isWeb) {
+      // Pas de jeton lisible côté client sur web (tokenStorage.getItemAsync
+      // est un no-op, voir tokenStorage.ts) — le seul moyen de savoir si une
+      // session existe déjà est de tenter un rafraîchissement via le cookie
+      // HttpOnly. Un échec veut juste dire "pas connecté", identique à
+      // l'absence de token en SecureStore côté natif.
+      refreshWebSession()
+        .then((res) => setToken(res.token))
+        .catch(() => setToken(null))
+        .finally(() => setIsLoading(false));
+      return;
+    }
     tokenStorage
       .getItemAsync(TOKEN_KEY)
       .then(setToken)
@@ -49,6 +63,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setToken(null);
       setSessionExpired(true);
     });
+  }, []);
+
+  // Web uniquement : quand api.ts rafraîchit silencieusement le token
+  // d'accès (expiré après 15 min mais la session cookie est toujours
+  // valide), on met juste à jour le token en mémoire — pas de
+  // tokenStorage, rien à y écrire sur web (voir tokenStorage.ts).
+  useEffect(() => {
+    setTokenRefreshedHandler((newToken) => setToken(newToken));
   }, []);
 
   const value = useMemo<AuthContextValue>(
