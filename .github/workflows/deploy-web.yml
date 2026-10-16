@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
@@ -57,3 +57,8 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
+          # Sans ça, l'action installe sa propre vieille version par
+          # défaut (3.x), qui ne comprend pas une config "assets
+          # uniquement" sans script Worker (wrangler.jsonc n'a pas de
+          # `main`) — elle réclame alors un "entry-point" manquant.
+          wranglerVersion: "4"
