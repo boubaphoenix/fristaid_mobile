@@ -5,6 +5,7 @@ import { Slot } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import { Screen, StateView } from '@/components/ui';
 import { AuthProvider } from '@/context/AuthContext';
@@ -12,11 +13,35 @@ import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
 SplashScreen.preventAutoHideAsync();
 
+const isWeb = Platform.OS === 'web';
+
 if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    // Environnement distinct pour filtrer/alerter séparément sur Sentry —
+    // le web (PWA) a des sources de bruit et une volumétrie différentes du
+    // natif (voir beforeSend ci-dessous).
+    environment: isWeb ? 'web' : 'production',
     tracesSampleRate: Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.2),
     sendDefaultPii: false,
+    beforeSend: isWeb
+      ? (event, hint) => {
+          // Bruit navigateur classique, sans valeur de diagnostic : erreurs
+          // d'extensions tierces, boucle ResizeObserver (connue inoffensive),
+          // et NETWORK_ERROR de api.ts quand l'utilisateur est simplement
+          // hors-ligne (attendu pour une PWA pensée pour la 3G instable,
+          // pas une panne à remonter).
+          const message = hint?.originalException instanceof Error ? hint.originalException.message : '';
+          if (
+            message.includes('ResizeObserver loop') ||
+            message.includes('NETWORK_ERROR') ||
+            event.exception?.values?.some((v) => v.value?.includes('ResizeObserver loop'))
+          ) {
+            return null;
+          }
+          return event;
+        }
+      : undefined,
   });
 }
 
