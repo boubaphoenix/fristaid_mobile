@@ -9,16 +9,7 @@ import { Platform } from 'react-native';
 // par afficher l'app entière au lieu de se refermer et prévenir la
 // fenêtre d'origine). Le paramètre `state` de Google protège déjà contre
 // la fraude, cette vérification de correspondance d'URL est redondante.
-const __authSessionResult = WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
-// TODO(debug): diagnostic temporaire pour comprendre pourquoi la popup web
-// ne se referme pas après Google — à retirer une fois corrigé.
-if (Platform.OS === 'web') {
-  // eslint-disable-next-line no-console
-  console.log('[googleAuth] maybeCompleteAuthSession ->', __authSessionResult, {
-    hasOpener: typeof window !== 'undefined' && !!window.opener,
-    href: typeof window !== 'undefined' ? window.location.href : null,
-  });
-}
+WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
 
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
@@ -69,6 +60,57 @@ export function useGoogleSignIn(
       ? { scheme: ANDROID_REDIRECT_SCHEME }
       : undefined,
   );
+
+  
+  // Écoute de retour via BroadcastChannel et storage event (solution universelle web
+  // quand window.opener est mis à null par Cross-Origin-Opener-Policy de Google).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+
+    let handled = false;
+    function handleAuthUrl(url: string) {
+      if (handled) return;
+      try {
+        const hashMatch = url.match(/[#?&]id_token=([^&]+)/);
+        if (hashMatch && hashMatch[1]) {
+          handled = true;
+          const idToken = decodeURIComponent(hashMatch[1]);
+          onIdToken(idToken);
+        }
+      } catch {
+        onError('Impossible de traiter la réponse Google.');
+      }
+    }
+
+    let channel: BroadcastChannel | null = null;
+    if ('BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel('africasecour_oauth_channel');
+        channel.onmessage = (event) => {
+          if (event.data?.url) {
+            handleAuthUrl(event.data.url);
+          }
+        };
+      } catch {}
+    }
+
+    function onStorage(event: StorageEvent) {
+      if (event.key === 'africasecour_oauth_response' && event.newValue) {
+        try {
+          const data = JSON.parse(event.newValue);
+          if (data.url) {
+            handleAuthUrl(data.url);
+          }
+        } catch {}
+      }
+    }
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      channel?.close();
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [onIdToken, onError]);
 
   useEffect(() => {
     if (!response) return;
