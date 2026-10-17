@@ -9,7 +9,16 @@ import { Platform } from 'react-native';
 // par afficher l'app entière au lieu de se refermer et prévenir la
 // fenêtre d'origine). Le paramètre `state` de Google protège déjà contre
 // la fraude, cette vérification de correspondance d'URL est redondante.
-WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
+const __authSessionResult = WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
+// TODO(debug): diagnostic temporaire pour comprendre pourquoi la popup web
+// ne se referme pas après Google — à retirer une fois corrigé.
+if (Platform.OS === 'web') {
+  // eslint-disable-next-line no-console
+  console.log('[googleAuth] maybeCompleteAuthSession ->', __authSessionResult, {
+    hasOpener: typeof window !== 'undefined' && !!window.opener,
+    href: typeof window !== 'undefined' ? window.location.href : null,
+  });
+}
 
 const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
