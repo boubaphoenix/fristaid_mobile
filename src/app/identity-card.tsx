@@ -19,13 +19,16 @@ import { openHttpsUrl } from '@/lib/urlSafety';
 type ShareTarget = 'whatsapp' | 'facebook';
 
 // La colonne NOM partage sa ligne avec RANG dans un espace étroit — un nom
-// long en taille h3 (20px) dépasse et se fait tronquer par numberOfLines={1}.
-// On réduit la taille progressivement avec la longueur plutôt que
-// d'utiliser adjustsFontSizeToFit (non supporté par react-native-web, donc
-// inutilisable sur la PWA).
+// long en taille h3 (20px) dépasse et se fait tronquer. On réduit la taille
+// progressivement avec la longueur (adjustsFontSizeToFit n'est pas
+// supporté par react-native-web, donc inutilisable sur la PWA) ; même avec
+// la police la plus petite, un nom très long peut encore dépasser une seule
+// ligne, donc le composant autorise aussi un retour à la ligne (voir
+// numberOfLines={2} sur le Text) au lieu de tronquer avec "...".
 function identityCardNameFontSize(name: string): number {
-  if (name.length > 20) return 13;
-  if (name.length > 15) return 16;
+  if (name.length > 24) return 12;
+  if (name.length > 18) return 14;
+  if (name.length > 13) return 16;
   return 20;
 }
 
@@ -217,9 +220,12 @@ export default function IdentityCardScreen() {
                         style={[
                           typography.h3,
                           styles.nameTextVivid,
-                          { fontSize: identityCardNameFontSize(state.card.display_name) },
+                          {
+                            fontSize: identityCardNameFontSize(state.card.display_name),
+                            lineHeight: identityCardNameFontSize(state.card.display_name) * 1.2,
+                          },
                         ]}
-                        numberOfLines={1}>
+                        numberOfLines={2}>
                         {state.card.display_name}
                       </Text>
                     </View>
