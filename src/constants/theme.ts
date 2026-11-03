@@ -29,6 +29,13 @@ export const brand = {
   forest: '#16342A',
   forestDeep: '#122A22',
   terracotta: '#C8552C',
+  // Même teinte, 2% plus sombre : utilisée uniquement comme FOND avec du
+  // texte blanc dessus (boutons, bandeaux) — `terracotta` seul ne passe pas
+  // le contraste 4.5:1 requis avec du blanc (4.38:1, relevé par Lighthouse),
+  // mais le foncer partout cassait le contraste inverse (texte terracotta
+  // sur fond forêt, ex. "SECOURS" du logo). Les deux usages ont des besoins
+  // opposés, d'où les deux teintes.
+  terracottaDeep: '#C4532B',
   cream: '#F1ECE0',
   creamCard: '#FFFFFF',
   sage: '#8CA290',

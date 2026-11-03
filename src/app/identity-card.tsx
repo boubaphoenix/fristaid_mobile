@@ -202,7 +202,12 @@ export default function IdentityCardScreen() {
               <View style={styles.cardRow}>
                 <View style={styles.photoColumn}>
                   {state.card.avatar_url ? (
-                    <Image source={{ uri: state.card.avatar_url }} style={styles.photoImage} contentFit="cover" />
+                    <Image
+                      source={{ uri: state.card.avatar_url }}
+                      accessibilityLabel={`Photo de profil de ${state.card.display_name}`}
+                      style={styles.photoImage}
+                      contentFit="cover"
+                    />
                   ) : (
                     <View style={styles.photoFallback}>
                       <Text style={[typography.h2, styles.photoFallbackLabel]}>
@@ -452,7 +457,7 @@ const styles = StyleSheet.create({
   cardFooterBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: brand.terracotta,
+    backgroundColor: brand.terracottaDeep,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },

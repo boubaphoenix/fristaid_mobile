@@ -2,6 +2,7 @@ import { Archivo_700Bold, Archivo_800ExtraBold, useFonts } from '@expo-google-fo
 import { IBMPlexMono_400Regular, IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono';
 import { IBMPlexSans_400Regular, IBMPlexSans_600SemiBold } from '@expo-google-fonts/ibm-plex-sans';
 import { Slot } from 'expo-router';
+import Head from 'expo-router/head';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
@@ -131,6 +132,11 @@ function RootLayout() {
   return (
     <EmergencyContactsProvider>
       <AuthProvider>
+        {isWeb ? (
+          <Head>
+            <title>AFRICASECOUR — Premiers secours qui sauvent</title>
+          </Head>
+        ) : null}
         <Sentry.ErrorBoundary fallback={ErrorFallback}>
           <UpdateBanner />
           <Slot />

@@ -27,6 +27,11 @@ export function LogoMark({ size = 96 }: LogoMarkProps) {
   return (
     <Image
       source={require('../../../assets/images/icon.png')}
+      // `alt` seul ne suffit pas : expo-image web a un chemin de rendu (sans
+      // placeholder, notre cas) qui ne relaie que `accessibilityLabel` vers
+      // le <img> final, pas `alt` — voir ExpoImage.web.tsx `currentNode`.
+      alt="Logo AFRICASECOUR"
+      accessibilityLabel="Logo AFRICASECOUR"
       style={{ width: size, height: size, borderRadius: size * 0.22 }}
       contentFit="cover"
     />

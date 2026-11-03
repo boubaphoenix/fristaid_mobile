@@ -141,7 +141,12 @@ export default function HomeScreen() {
             onPress={() => router.push('/(tabs)/profile')}
             style={styles.avatar}>
             {profile.profile.avatar_url ? (
-              <Image source={{ uri: profile.profile.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+              <Image
+                source={{ uri: profile.profile.avatar_url }}
+                accessibilityLabel=""
+                style={styles.avatarImage}
+                contentFit="cover"
+              />
             ) : (
               <Text style={[typography.bodyBold, styles.avatarLabel]}>
                 {initials(profile.profile.full_name, profile.email)}

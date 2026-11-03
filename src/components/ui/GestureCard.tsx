@@ -16,7 +16,7 @@ type GestureCardProps = {
 export function GestureCard({ title, imageSource, onPress, style }: GestureCardProps) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={[styles.card, style]}>
-      <Image source={imageSource} style={styles.image} contentFit="cover" />
+      <Image source={imageSource} accessibilityLabel={title} style={styles.image} contentFit="cover" />
       <Text style={[typography.bodyBold, styles.label]} numberOfLines={1}>
         {title}
       </Text>

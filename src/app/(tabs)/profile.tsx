@@ -150,7 +150,12 @@ export default function ProfileScreen() {
           disabled={isUploadingAvatar}
           style={styles.avatar}>
           {user.profile.avatar_url ? (
-            <Image source={{ uri: user.profile.avatar_url }} style={styles.avatarImage} contentFit="cover" />
+            <Image
+              source={{ uri: user.profile.avatar_url }}
+              accessibilityLabel=""
+              style={styles.avatarImage}
+              contentFit="cover"
+            />
           ) : (
             <Text style={[typography.h2, styles.avatarLabel]}>{initials(user.profile.full_name, user.email)}</Text>
           )}

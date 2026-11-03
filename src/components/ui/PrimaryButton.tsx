@@ -31,7 +31,7 @@ const VARIANT_COLOR: Record<PrimaryButtonVariant, string> = {
   primary: colors.trustBlue,
   success: colors.successGreen,
   danger: colors.emergencyRed,
-  brand: brand.terracotta,
+  brand: brand.terracottaDeep,
 };
 
 export function PrimaryButton({
