@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { ApiError } from '@/lib/api';
 import { getQuiz, submitQuiz, type QuizQuestion, type QuizSubmitResult } from '@/lib/quizApi';
 import { isValidRecordId } from '@/lib/routeParams';
 
@@ -24,6 +25,7 @@ export default function QuizScreen() {
   const [selectedByQuiz, setSelectedByQuiz] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -113,10 +115,15 @@ export default function QuizScreen() {
     if (isLastQuestion) {
       if (!token || !courseId) return;
       setIsSubmitting(true);
+      setSubmitError(null);
       try {
         const answers = quiz.map((q) => ({ quiz_id: q.id, option_id: selectedByQuiz[q.id]! }));
         const submitResult = await submitQuiz(token, courseId, answers);
         setResult(submitResult);
+      } catch (err) {
+        setSubmitError(
+          err instanceof ApiError ? err.message : "Impossible d'envoyer vos réponses pour le moment.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -173,6 +180,7 @@ export default function QuizScreen() {
         loading={isSubmitting}
         style={styles.spaced}
       />
+      {submitError ? <Text style={[typography.small, styles.errorText, styles.spaced]}>{submitError}</Text> : null}
     </Screen>
   );
 }
@@ -187,6 +195,9 @@ const styles = StyleSheet.create({
   },
   spaced: {
     marginTop: spacing.lg,
+  },
+  errorText: {
+    color: colors.emergencyRed,
   },
   option: {
     flexDirection: 'row',

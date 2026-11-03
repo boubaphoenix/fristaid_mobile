@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
+import { ApiError } from '@/lib/api';
 import { getMissions } from '@/lib/missionsApi';
 import { isValidRecordId } from '@/lib/routeParams';
 import {
@@ -35,6 +36,7 @@ export default function SimulationScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<SimulationSubmitResult | null>(null);
   const [missionId, setMissionId] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -139,6 +141,7 @@ export default function SimulationScreen() {
     if (isLastStep) {
       if (!token || !courseId) return;
       setIsSubmitting(true);
+      setSubmitError(null);
       try {
         const answers = steps.map((s) => ({ step_id: s.id, selected_option: selectedByStep[s.id]! }));
         const submitResult = await submitSimulation(token, courseId, answers);
@@ -154,6 +157,10 @@ export default function SimulationScreen() {
           return;
         }
         setResult(submitResult);
+      } catch (err) {
+        setSubmitError(
+          err instanceof ApiError ? err.message : "Impossible d'envoyer vos réponses pour le moment.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -202,6 +209,7 @@ export default function SimulationScreen() {
         loading={isSubmitting}
         style={styles.spaced}
       />
+      {submitError ? <Text style={[typography.small, styles.errorText, styles.spaced]}>{submitError}</Text> : null}
     </Screen>
   );
 }
@@ -209,6 +217,9 @@ export default function SimulationScreen() {
 const styles = StyleSheet.create({
   progress: {
     marginTop: spacing.md,
+  },
+  errorText: {
+    color: colors.emergencyRed,
   },
   muted: {
     color: colors.mutedText,

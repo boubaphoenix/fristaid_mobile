@@ -16,6 +16,7 @@ import {
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { LESSON_STEP_IMAGES } from '@/constants/lessonStepImages';
+import { ApiError } from '@/lib/api';
 import { buildLessonErrorMessage } from '@/lib/contactMessages';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
 import { isValidRecordId } from '@/lib/routeParams';
@@ -64,6 +65,7 @@ export default function LessonScreen() {
   >({ status: 'loading' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
+  const [completeError, setCompleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -87,11 +89,15 @@ export default function LessonScreen() {
   async function handleUnderstood() {
     if (!token || !lessonId || !courseId) return;
     setIsSubmitting(true);
+    setCompleteError(null);
     try {
       const result = await completeLesson(token, lessonId);
       setPointsAwarded(result.points_awarded);
       router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } });
-    } catch {
+    } catch (err) {
+      setCompleteError(
+        err instanceof ApiError ? err.message : "Impossible d'enregistrer votre progression pour le moment.",
+      );
       setIsSubmitting(false);
     }
   }
@@ -186,6 +192,7 @@ export default function LessonScreen() {
         variant="success"
         style={styles.spaced}
       />
+      {completeError ? <Text style={[typography.small, styles.errorText, styles.spaced]}>{completeError}</Text> : null}
 
       <View style={styles.spaced}>
         <WhatsAppContactAction
@@ -218,6 +225,9 @@ const styles = StyleSheet.create({
   },
   retainText: {
     color: colors.white,
+  },
+  errorText: {
+    color: colors.emergencyRed,
   },
   videoErrorBlock: {
     backgroundColor: colors.warningBg,
