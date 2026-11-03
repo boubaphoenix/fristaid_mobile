@@ -14,6 +14,18 @@ export default function Index() {
   const { token, isLoading } = useAuth();
   const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
 
+  // Évite d'afficher l'accueil dans la popup Google Sign-In pendant le bref
+  // instant avant qu'elle se ferme (voir src/app/_layout.tsx).
+  if (
+    typeof window !== 'undefined' &&
+    window.opener &&
+    (window.location.href.includes('id_token=') ||
+      window.location.href.includes('access_token=') ||
+      window.location.href.includes('code='))
+  ) {
+    return <View style={{ flex: 1, backgroundColor: brand.cream }} />;
+  }
+
   useEffect(() => {
     if (token) return;
     hasSeenOnboarding().then(setOnboardingSeen);

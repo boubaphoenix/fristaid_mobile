@@ -4,6 +4,7 @@ import { IBMPlexSans_400Regular, IBMPlexSans_600SemiBold } from '@expo-google-fo
 import { Slot } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
@@ -11,6 +12,43 @@ import { Screen, StateView } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { AuthProvider } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
+
+// Ferme la popup Google Sign-In (web) dès que la redirection d'authentification
+// atterrit dessus, au lieu de laisser l'app entière s'y afficher. On ne fait
+// ceci que si `window.opener` existe réellement (on est bien dans une popup
+// ouverte par la fenêtre principale) — sinon, sur un navigateur qui ne
+// supporte pas les popups et bascule sur une redirection pleine page, ce
+// code ne doit RIEN fermer ni bloquer.
+if (Platform.OS === 'web' && typeof window !== 'undefined' && window.opener) {
+  const href = window.location.href;
+  const isOAuthRedirect =
+    href.includes('id_token=') || href.includes('access_token=') || href.includes('code=');
+
+  if (isOAuthRedirect) {
+    try {
+      if ('BroadcastChannel' in window) {
+        const channel = new BroadcastChannel('africasecour_oauth_channel');
+        channel.postMessage({ url: href });
+        channel.close();
+      }
+    } catch {}
+
+    try {
+      window.localStorage.setItem(
+        'africasecour_oauth_response',
+        JSON.stringify({ url: href, time: Date.now() }),
+      );
+    } catch {}
+
+    try {
+      WebBrowser.maybeCompleteAuthSession({ skipRedirectCheck: true });
+    } catch {}
+
+    try {
+      window.close();
+    } catch {}
+  }
+}
 
 SplashScreen.preventAutoHideAsync();
 
