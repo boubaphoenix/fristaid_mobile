@@ -18,6 +18,17 @@ import { openHttpsUrl } from '@/lib/urlSafety';
 
 type ShareTarget = 'whatsapp' | 'facebook';
 
+// La colonne NOM partage sa ligne avec RANG dans un espace étroit — un nom
+// long en taille h3 (20px) dépasse et se fait tronquer par numberOfLines={1}.
+// On réduit la taille progressivement avec la longueur plutôt que
+// d'utiliser adjustsFontSizeToFit (non supporté par react-native-web, donc
+// inutilisable sur la PWA).
+function identityCardNameFontSize(name: string): number {
+  if (name.length > 20) return 13;
+  if (name.length > 15) return 16;
+  return 20;
+}
+
 // Bandeau décoratif statique — identique pour tous les utilisateurs,
 // aucune donnée personnelle. Volontairement en emoji + texte plutôt
 // qu'en icônes SVG sur mesure (pas de dépendance supplémentaire).
@@ -202,7 +213,13 @@ export default function IdentityCardScreen() {
                   <View style={styles.fieldRow}>
                     <View style={styles.fieldHalf}>
                       <Text style={[typography.caption, styles.fieldLabel]}>NOM</Text>
-                      <Text style={[typography.h3, styles.nameTextVivid]} numberOfLines={1}>
+                      <Text
+                        style={[
+                          typography.h3,
+                          styles.nameTextVivid,
+                          { fontSize: identityCardNameFontSize(state.card.display_name) },
+                        ]}
+                        numberOfLines={1}>
                         {state.card.display_name}
                       </Text>
                     </View>
