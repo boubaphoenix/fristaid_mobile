@@ -3,7 +3,6 @@ import { IBMPlexMono_400Regular, IBMPlexMono_600SemiBold } from '@expo-google-fo
 import { IBMPlexSans_400Regular, IBMPlexSans_600SemiBold } from '@expo-google-fonts/ibm-plex-sans';
 import { Slot } from 'expo-router';
 import Head from 'expo-router/head';
-import * as Sentry from '@sentry/react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
@@ -13,16 +12,13 @@ import { Screen, StateView } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { AuthProvider } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
+import { MonitoringBoundary, startMonitoring, wrapRoot } from '@/lib/monitoring';
 
-// Ferme la popup Google Sign-In (web) dès que la redirection d'authentification
+// Ferme la popup Google Sign-In dès que la redirection d'authentification
 // atterrit dessus, au lieu de laisser l'app entière s'y afficher. Pas de
-// vérification `window.opener` ici : ce lien est coupé définitivement dès
-// que la popup traverse accounts.google.com (politique COOP de Google), même
-// une fois revenue sur notre propre domaine — donc `window.opener` est
-// `null` à ce stade même dans une vraie popup. On s'appuie à la place sur la
-// protection native du navigateur : `window.close()` ne fait rien (sans
-// erreur) si la fenêtre n'a pas été ouverte par script, donc ce code reste
-// sans danger pour un onglet normal.
+// vérification `window.opener` : testée en conditions réelles, elle empêchait
+// ce code de s'exécuter dans la popup. `window.close()` ne fait rien (sans
+// erreur) sur un onglet qui n'a pas été ouvert par script.
 if (Platform.OS === 'web' && typeof window !== 'undefined') {
   const href = window.location.href;
   const isOAuthRedirect =
@@ -55,44 +51,11 @@ if (Platform.OS === 'web' && typeof window !== 'undefined') {
 }
 
 SplashScreen.preventAutoHideAsync();
-
-const isWeb = Platform.OS === 'web';
-
-if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-    // Environnement distinct pour filtrer/alerter séparément sur Sentry —
-    // le web (PWA) a des sources de bruit et une volumétrie différentes du
-    // natif (voir beforeSend ci-dessous).
-    environment: isWeb ? 'web' : 'production',
-    tracesSampleRate: Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.2),
-    sendDefaultPii: false,
-    beforeSend: isWeb
-      ? (event, hint) => {
-          // Bruit navigateur classique, sans valeur de diagnostic : erreurs
-          // d'extensions tierces, boucle ResizeObserver (connue inoffensive),
-          // et NETWORK_ERROR de api.ts quand l'utilisateur est simplement
-          // hors-ligne (attendu pour une PWA pensée pour la 3G instable,
-          // pas une panne à remonter).
-          const message = hint?.originalException instanceof Error ? hint.originalException.message : '';
-          if (
-            message.includes('ResizeObserver loop') ||
-            message.includes('NETWORK_ERROR') ||
-            event.exception?.values?.some((v) => v.value?.includes('ResizeObserver loop'))
-          ) {
-            return null;
-          }
-          return event;
-        }
-      : undefined,
-  });
-}
+startMonitoring();
 
 // Filet de sécurité au-delà des écrans qui gèrent déjà leurs propres
-// erreurs réseau (via StateView) : une erreur de rendu React non
-// rattrapée ailleurs (crash) affiche ceci au lieu d'un écran blanc.
-// Sentry.wrap (plus bas) capture toujours l'événement ; ce composant
-// ajoute juste une interface de secours avec un bouton "Réessayer".
+// erreurs réseau (via StateView) : une erreur de rendu React non rattrapée
+// ailleurs (crash) affiche ceci au lieu d'un écran blanc.
 function ErrorFallback({ resetError }: { resetError: () => void }) {
   return (
     <Screen mode="normal">
@@ -132,18 +95,18 @@ function RootLayout() {
   return (
     <EmergencyContactsProvider>
       <AuthProvider>
-        {isWeb ? (
+        {Platform.OS === 'web' ? (
           <Head>
             <title>AFRICASECOUR — Premiers secours qui sauvent</title>
           </Head>
         ) : null}
-        <Sentry.ErrorBoundary fallback={ErrorFallback}>
+        <MonitoringBoundary fallback={ErrorFallback}>
           <UpdateBanner />
           <Slot />
-        </Sentry.ErrorBoundary>
+        </MonitoringBoundary>
       </AuthProvider>
     </EmergencyContactsProvider>
   );
 }
 
-export default Sentry.wrap(RootLayout);
+export default wrapRoot(RootLayout);
