@@ -15,10 +15,11 @@ export default function Index() {
   const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
 
   // Évite d'afficher l'accueil dans la popup Google Sign-In pendant le bref
-  // instant avant qu'elle se ferme (voir src/app/_layout.tsx).
+  // instant avant qu'elle se ferme (voir src/app/_layout.tsx — pas de
+  // vérification window.opener possible ici, coupée par COOP après
+  // accounts.google.com même dans une vraie popup).
   if (
     typeof window !== 'undefined' &&
-    window.opener &&
     (window.location.href.includes('id_token=') ||
       window.location.href.includes('access_token=') ||
       window.location.href.includes('code='))

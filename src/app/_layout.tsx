@@ -14,12 +14,15 @@ import { AuthProvider } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 
 // Ferme la popup Google Sign-In (web) dès que la redirection d'authentification
-// atterrit dessus, au lieu de laisser l'app entière s'y afficher. On ne fait
-// ceci que si `window.opener` existe réellement (on est bien dans une popup
-// ouverte par la fenêtre principale) — sinon, sur un navigateur qui ne
-// supporte pas les popups et bascule sur une redirection pleine page, ce
-// code ne doit RIEN fermer ni bloquer.
-if (Platform.OS === 'web' && typeof window !== 'undefined' && window.opener) {
+// atterrit dessus, au lieu de laisser l'app entière s'y afficher. Pas de
+// vérification `window.opener` ici : ce lien est coupé définitivement dès
+// que la popup traverse accounts.google.com (politique COOP de Google), même
+// une fois revenue sur notre propre domaine — donc `window.opener` est
+// `null` à ce stade même dans une vraie popup. On s'appuie à la place sur la
+// protection native du navigateur : `window.close()` ne fait rien (sans
+// erreur) si la fenêtre n'a pas été ouverte par script, donc ce code reste
+// sans danger pour un onglet normal.
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
   const href = window.location.href;
   const isOAuthRedirect =
     href.includes('id_token=') || href.includes('access_token=') || href.includes('code=');
