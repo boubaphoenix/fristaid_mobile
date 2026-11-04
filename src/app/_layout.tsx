@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 
 import { Screen, StateView } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 import { MonitoringBoundary, startMonitoring, wrapRoot } from '@/lib/monitoring';
 
@@ -69,6 +69,18 @@ function ErrorFallback({ resetError }: { resetError: () => void }) {
   );
 }
 
+function HideWebSplash() {
+  const { isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      document.getElementById('app-splash')?.remove();
+    }
+  }, [isLoading]);
+
+  return null;
+}
+
 function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Archivo_700Bold,
@@ -96,9 +108,12 @@ function RootLayout() {
     <EmergencyContactsProvider>
       <AuthProvider>
         {Platform.OS === 'web' ? (
-          <Head>
-            <title>AFRICASECOUR — Premiers secours qui sauvent</title>
-          </Head>
+          <>
+            <Head>
+              <title>AFRICASECOUR — Premiers secours qui sauvent</title>
+            </Head>
+            <HideWebSplash />
+          </>
         ) : null}
         <MonitoringBoundary fallback={ErrorFallback}>
           <UpdateBanner />

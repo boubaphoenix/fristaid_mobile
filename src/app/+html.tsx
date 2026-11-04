@@ -33,7 +33,32 @@ export default function Root({ children }: PropsWithChildren) {
             (patron recommandé par expo-router pour l'export web statique). */}
         <ScrollViewStyleReset />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Visible dès la réception du HTML, avant tout JavaScript. Retiré par
+            HideWebSplash (src/app/_layout.tsx) une fois la session vérifiée. */}
+        <div
+          id="app-splash"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            backgroundColor: '#16342A',
+            color: '#FFFFFF',
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: 22,
+            fontWeight: 700,
+            letterSpacing: 0.5,
+          }}>
+          <img src="/pwa-icon-192.png" alt="" width={96} height={96} style={{ borderRadius: 21 }} />
+          AFRICASECOUR
+        </div>
+        {children}
+      </body>
     </html>
   );
 }
