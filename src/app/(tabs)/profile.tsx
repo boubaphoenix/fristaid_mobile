@@ -17,7 +17,7 @@ import { deleteAccount, getProfile, updateProfile, updateReminders } from '@/lib
 
 // Écran 23 — profil et réglages.
 export default function ProfileScreen() {
-  const { token, signOut } = useAuth();
+  const { token, signOut, clearLocalSession } = useAuth();
   const [state, setState] = useState<{ status: 'loading' } | { status: 'error' } | { status: 'success'; user: AuthUser }>(
     { status: 'loading' },
   );
@@ -102,7 +102,7 @@ export default function ProfileScreen() {
     setIsDeletingAccount(true);
     try {
       await deleteAccount(token);
-      await signOut();
+      await clearLocalSession();
     } catch (err) {
       setDeleteError(err instanceof ApiError ? err.message : "Impossible de supprimer le compte pour le moment.");
       setIsDeletingAccount(false);

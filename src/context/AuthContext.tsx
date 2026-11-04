@@ -13,6 +13,9 @@ type AuthContextValue = {
   isLoading: boolean;
   signIn: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  // Après suppression du compte : le token est déjà rejeté par le serveur, un
+  // appel à /auth/logout répondrait 401 et afficherait "session expirée".
+  clearLocalSession: () => Promise<void>;
   // Vrai juste après une déconnexion automatique (token expiré/invalide
   // rejeté par l'API, voir setUnauthorizedHandler) — l'écran de connexion
   // l'affiche une fois puis l'efface, pour ne pas persister après un
@@ -89,6 +92,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (token) {
           await logoutApi(token).catch(() => {});
         }
+        await tokenStorage.deleteItemAsync(TOKEN_KEY);
+        setToken(null);
+      },
+      clearLocalSession: async () => {
         await tokenStorage.deleteItemAsync(TOKEN_KEY);
         setToken(null);
       },
