@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { brand } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -14,25 +14,20 @@ export default function Index() {
   const { token, isLoading } = useAuth();
   const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
 
-  // Évite d'afficher l'accueil dans la popup Google Sign-In pendant le bref
-  // instant avant qu'elle se ferme (voir src/app/_layout.tsx — pas de
-  // vérification window.opener possible ici, coupée par COOP après
-  // accounts.google.com même dans une vraie popup).
-  if (
-    typeof window !== 'undefined' &&
-    (window.location.href.includes('id_token=') ||
-      window.location.href.includes('access_token=') ||
-      window.location.href.includes('code='))
-  ) {
-    return <View style={{ flex: 1, backgroundColor: brand.cream }} />;
-  }
-
   useEffect(() => {
     if (token) return;
     hasSeenOnboarding().then(setOnboardingSeen);
   }, [token]);
 
-  if (isLoading || (!token && onboardingSeen === null)) {
+  // Évite d'afficher l'accueil dans la popup Google Sign-In pendant le bref
+  // instant avant qu'elle se ferme (voir src/app/_layout.tsx). Platform.OS et
+  // non `typeof window` : en React Native, window existe mais pas location.
+  const isOAuthPopupReturn =
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    (window.location.href.includes('id_token=') || window.location.href.includes('access_token='));
+
+  if (isOAuthPopupReturn || isLoading || (!token && onboardingSeen === null)) {
     return <View style={{ flex: 1, backgroundColor: brand.cream }} />;
   }
 
