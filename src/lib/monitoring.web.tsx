@@ -46,10 +46,39 @@ function loadSentry() {
   document.head.appendChild(script);
 }
 
+// Après une mise en ligne, une page encore ouverte sur l'ancienne version
+// demande des morceaux de code (chunks) qui n'existent plus sur le serveur.
+// Recharger récupère la nouvelle version. Une seule fois par minute, pour ne
+// jamais boucler (hors-ligne, serveur en panne).
+const CHUNK_RELOAD_KEY = 'africasecour_chunk_reload_at';
+
+function isChunkLoadError(error: unknown) {
+  return (
+    error instanceof Error &&
+    (error.name === 'AsyncRequireError' || error.message.startsWith('Loading module '))
+  );
+}
+
+function reloadOnceForChunkError(error: unknown) {
+  if (!isChunkLoadError(error)) return false;
+  try {
+    const last = Number(window.sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? 0);
+    if (Date.now() - last < 60_000) return false;
+    window.sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return false;
+  }
+  window.location.reload();
+  return true;
+}
+
 // Après l'événement load pour ne jamais concurrencer le premier affichage.
 // Une erreur survenue avant la fin de ce chargement n'est pas remontée.
 export function startMonitoring() {
-  if (!process.env.EXPO_PUBLIC_SENTRY_DSN || typeof document === 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  window.addEventListener('unhandledrejection', (event) => reloadOnceForChunkError(event.reason));
+  window.addEventListener('error', (event) => reloadOnceForChunkError(event.error));
+  if (!process.env.EXPO_PUBLIC_SENTRY_DSN) return;
   if (document.readyState === 'complete') {
     loadSentry();
   } else {
@@ -69,6 +98,7 @@ export class MonitoringBoundary extends Component<BoundaryProps, { hasError: boo
   }
   componentDidCatch(error: Error) {
     window.Sentry?.captureException(error);
+    reloadOnceForChunkError(error);
   }
   render() {
     if (this.state.hasError) {
