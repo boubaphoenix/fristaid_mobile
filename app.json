@@ -7,7 +7,8 @@
     "icon": "./assets/images/icon.png",
     "scheme": [
       "fristaidmobile",
-      "com.googleusercontent.apps.1088041004112-p9n4ckupmdoti1olnum28du96ioruqdm"
+      "com.googleusercontent.apps.1088041004112-p9n4ckupmdoti1olnum28du96ioruqdm",
+      "com.africasecours.fristaidmobile"
     ],
     "userInterfaceStyle": "automatic",
     "ios": {
