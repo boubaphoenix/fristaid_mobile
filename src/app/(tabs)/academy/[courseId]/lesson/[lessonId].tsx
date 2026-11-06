@@ -93,16 +93,33 @@ export default function LessonScreen() {
     if (!token || !lessonId || !courseId) return;
     setIsSubmitting(true);
     setCompleteError(null);
+
+    // Enchaîne directement sur la leçon suivante ; après la dernière, retour
+    // au cours (où le quiz est alors débloqué).
+    function goToNext() {
+      const lessons = state.status === 'success' ? state.lessons : [];
+      const next = lessons[lessons.findIndex((l) => l.id === lessonId) + 1];
+      setIsSubmitting(false);
+      if (next) {
+        router.replace({
+          pathname: '/(tabs)/academy/[courseId]/lesson/[lessonId]',
+          params: { courseId: courseId!, lessonId: next.id, courseTitle: courseTitle ?? '' },
+        });
+      } else {
+        router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId: courseId! } });
+      }
+    }
+
     try {
       const result = await completeLesson(token, lessonId);
       setPointsAwarded(result.points_awarded);
-      router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } });
+      goToNext();
     } catch (err) {
       if (isNetworkError(err)) {
         // Hors-ligne : gardée sur l'appareil, envoyée au retour du réseau
         // (voir offlineQueue.ts) — le cours la compte déjà comme terminée.
         await enqueueOfflineAction({ kind: 'lesson', courseId, lessonId, createdAt: Date.now() });
-        router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } });
+        goToNext();
         return;
       }
       setCompleteError(
