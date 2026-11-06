@@ -53,7 +53,10 @@ export function useGoogleSignIn(
     {
       webClientId: GOOGLE_WEB_CLIENT_ID,
       androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-      responseType: 'id_token',
+      // Web : id_token direct. Android : Google refuse id_token pour un client
+      // Android ("unsupported_response_type") — sans responseType, la lib
+      // utilise un code + PKCE et l'échange elle-même contre l'id_token.
+      ...(Platform.OS === 'web' ? { responseType: 'id_token' } : {}),
       scopes: ['openid', 'email', 'profile'],
     },
     Platform.OS === 'android' && ANDROID_REDIRECT_SCHEME
