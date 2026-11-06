@@ -47,7 +47,9 @@ const offlineWritesQueue = new BackgroundSyncPlugin('offline-writes', {
 registerRoute(
   ({ url, request }) =>
     request.method === 'POST' &&
-    /\/courses\/[^/]+\/quiz\/submit$|\/missions\/[^/]+\/complete$|\/weekly-challenges\/[^/]+\/attempt$/.test(
+    // Quiz retiré : géré par l'app (src/lib/offlineQueue.ts), qui renvoie
+    // avec un token à jour — le garder ici l'enverrait deux fois.
+    /\/missions\/[^/]+\/complete$|\/weekly-challenges\/[^/]+\/attempt$/.test(
       url.pathname,
     ),
   new NetworkOnly({ plugins: [offlineWritesQueue] }),

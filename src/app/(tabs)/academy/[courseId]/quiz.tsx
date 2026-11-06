@@ -6,10 +6,14 @@ import { OutlineButton, PrimaryButton, ProgressSegments, Screen, StateView } fro
 import { colors, radius, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
+import { enqueueOfflineAction, isNetworkError } from '@/lib/offlineQueue';
 import { getQuiz, submitQuiz, type QuizQuestion, type QuizSubmitResult } from '@/lib/quizApi';
 import { isValidRecordId } from '@/lib/routeParams';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+// Même seuil que le backend (fristaid-backend/src/routes/quiz.ts) — utilisé
+// seulement pour le résultat provisoire hors-ligne, le serveur recalcule.
+const PASS_THRESHOLD_PERCENT = 70;
 
 // Écrans 08 (question) + 09 (résultat) — une seule question à la fois,
 // explication affichée immédiatement après la réponse (sans aller-retour
@@ -26,6 +30,7 @@ export default function QuizScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isOfflineResult, setIsOfflineResult] = useState(false);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -37,6 +42,7 @@ export default function QuizScreen() {
     setQIndex(0);
     setSelectedByQuiz({});
     setResult(null);
+    setIsOfflineResult(false);
     try {
       const quiz = await getQuiz(token, courseId);
       setState({ status: 'success', quiz });
@@ -78,11 +84,22 @@ export default function QuizScreen() {
             {passed ? 'Quiz réussi !' : 'Pas encore réussi'}
           </Text>
           <Text style={[typography.body, styles.muted, styles.centerText]}>
-            Meilleur score : {result.quiz_best_score}% — score minimum requis : 70%.
+            {isOfflineResult
+              ? 'Résultat provisoire calculé sur votre téléphone — score minimum requis : 70%.'
+              : `Meilleur score : ${result.quiz_best_score}% — score minimum requis : 70%.`}
           </Text>
         </View>
 
-        {passed && result.certificate ? (
+        {isOfflineResult ? (
+          <View style={[styles.explanationBlock, styles.spaced]}>
+            <Text style={typography.small}>
+              Vous êtes hors-ligne : vos réponses sont enregistrées sur l'appareil et seront envoyées
+              automatiquement au retour du réseau. Vos points et votre attestation arriveront à ce moment-là.
+            </Text>
+          </View>
+        ) : null}
+
+        {isOfflineResult && passed ? null : passed && result.certificate ? (
           <PrimaryButton
             label="Voir mon attestation"
             onPress={() =>
@@ -116,11 +133,29 @@ export default function QuizScreen() {
       if (!token || !courseId) return;
       setIsSubmitting(true);
       setSubmitError(null);
+      const answers = quiz.map((q) => ({ quiz_id: q.id, option_id: selectedByQuiz[q.id]! }));
       try {
-        const answers = quiz.map((q) => ({ quiz_id: q.id, option_id: selectedByQuiz[q.id]! }));
         const submitResult = await submitQuiz(token, courseId, answers);
         setResult(submitResult);
       } catch (err) {
+        if (isNetworkError(err)) {
+          // Hors-ligne : les bonnes réponses sont déjà sur l'appareil (GET
+          // quiz), le score provisoire est donc calculable ici ; le serveur
+          // fera foi à l'envoi (voir offlineQueue.ts).
+          const correctCount = quiz.filter(
+            (q) => q.options.find((o) => o.id === selectedByQuiz[q.id])?.is_correct,
+          ).length;
+          const scorePercent = Math.round((correctCount / quiz.length) * 100);
+          await enqueueOfflineAction({ kind: 'quiz', courseId, answers, createdAt: Date.now() });
+          setIsOfflineResult(true);
+          setResult({
+            score_percent: scorePercent,
+            passed: scorePercent >= PASS_THRESHOLD_PERCENT,
+            quiz_best_score: scorePercent,
+            certificate: null,
+          });
+          return;
+        }
         setSubmitError(
           err instanceof ApiError ? err.message : "Impossible d'envoyer vos réponses pour le moment.",
         );

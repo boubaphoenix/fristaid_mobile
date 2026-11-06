@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card, PathwayStepper, PrimaryButton, Screen, StateView } from '@/components/ui';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { type Course, type Lesson, getCourseDetail, getCourseLessons } from '@/lib/coursesApi';
 import { type Kit, getKits } from '@/lib/kitsApi';
 import { type Mission, getMissions } from '@/lib/missionsApi';
+import { useOfflineQueue } from '@/lib/offlineQueue';
 import { isValidRecordId } from '@/lib/routeParams';
 
 type DetailData = { course: Course; lessons: Lesson[]; mission: Mission | null; kit: Kit | null };
@@ -49,6 +50,15 @@ export default function CourseDetailScreen() {
     }, [load]),
   );
 
+  // Actions faites hors-ligne : comptées tout de suite, puis l'écran se
+  // recharge une fois qu'elles ont été envoyées au serveur.
+  const { pending, syncCount } = useOfflineQueue();
+  useEffect(() => {
+    if (syncCount > 0) load();
+  }, [syncCount, load]);
+  const pendingForCourse = pending.filter((a) => a.courseId === courseId);
+  const pendingLessonIds = new Set(pendingForCourse.flatMap((a) => (a.kind === 'lesson' ? [a.lessonId] : [])));
+
   if (state.status === 'loading') {
     return (
       <Screen mode="normal" scroll>
@@ -64,7 +74,10 @@ export default function CourseDetailScreen() {
     );
   }
 
-  const { course, lessons, mission, kit } = state.data;
+  const { course, mission, kit } = state.data;
+  const lessons = state.data.lessons.map((l) =>
+    pendingLessonIds.has(l.id) ? { ...l, completed: true } : l,
+  );
   const isVital = VITAL_INCIDENTS.has(course.category);
   const allLessonsCompleted = lessons.length > 0 && lessons.every((l) => l.completed);
   const nextLesson = lessons.find((l) => !l.completed) ?? lessons[0];
@@ -93,6 +106,14 @@ export default function CourseDetailScreen() {
           badgeAwarded={badgeAwarded}
         />
       </View>
+
+      {pendingForCourse.length > 0 ? (
+        <View style={[styles.spaced, styles.pendingBlock]}>
+          <Text style={typography.small}>
+            Progression enregistrée sur l'appareil — elle sera envoyée automatiquement au retour du réseau.
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.spaced}>
         <Text style={[typography.bodyBold, styles.sectionTitle]}>Leçons</Text>
@@ -236,6 +257,11 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: colors.successGreen,
+  },
+  pendingBlock: {
+    backgroundColor: colors.warningBg,
+    borderRadius: radius.card,
+    padding: spacing.md,
   },
   lockedCard: {
     opacity: 0.6,

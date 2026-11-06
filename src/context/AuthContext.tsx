@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { tokenStorage } from './tokenStorage';
 import { setTokenRefreshedHandler, setUnauthorizedHandler } from '@/lib/api';
 import { logout as logoutApi, refreshWebSession } from '@/lib/authApi';
+import { clearOfflineQueue } from '@/lib/offlineQueue';
 
 const TOKEN_KEY = 'africasecour_auth_token';
 const isWeb = Platform.OS === 'web';
@@ -92,10 +93,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (token) {
           await logoutApi(token).catch(() => {});
         }
+        // La file hors-ligne appartient à ce compte : elle ne doit pas être
+        // envoyée au nom du prochain utilisateur connecté sur l'appareil.
+        await clearOfflineQueue();
         await tokenStorage.deleteItemAsync(TOKEN_KEY);
         setToken(null);
       },
       clearLocalSession: async () => {
+        await clearOfflineQueue();
         await tokenStorage.deleteItemAsync(TOKEN_KEY);
         setToken(null);
       },

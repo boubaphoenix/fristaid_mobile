@@ -6,13 +6,14 @@ import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { Screen, StateView } from '@/components/ui';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { EmergencyContactsProvider } from '@/context/EmergencyContactsContext';
 import { MonitoringBoundary, startMonitoring, wrapRoot } from '@/lib/monitoring';
+import { flushOfflineQueue } from '@/lib/offlineQueue';
 
 // Ferme la popup Google Sign-In dès que la redirection d'authentification
 // atterrit dessus, au lieu de laisser l'app entière s'y afficher. Pas de
@@ -81,6 +82,28 @@ function HideWebSplash() {
   return null;
 }
 
+// Envoie les actions faites hors-ligne (voir offlineQueue.ts) dès qu'une
+// session existe, au retour du réseau (web) et au retour dans l'app (natif).
+function OfflineSync() {
+  const { token } = useAuth();
+
+  useEffect(() => {
+    if (!token) return;
+    flushOfflineQueue(token);
+    if (Platform.OS === 'web') {
+      const onOnline = () => flushOfflineQueue(token);
+      window.addEventListener('online', onOnline);
+      return () => window.removeEventListener('online', onOnline);
+    }
+    const subscription = AppState.addEventListener('change', (status) => {
+      if (status === 'active') flushOfflineQueue(token);
+    });
+    return () => subscription.remove();
+  }, [token]);
+
+  return null;
+}
+
 function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Archivo_700Bold,
@@ -115,6 +138,7 @@ function RootLayout() {
             <HideWebSplash />
           </>
         ) : null}
+        <OfflineSync />
         <MonitoringBoundary fallback={ErrorFallback}>
           <UpdateBanner />
           <Slot />

@@ -19,6 +19,7 @@ import { LESSON_STEP_IMAGES } from '@/constants/lessonStepImages';
 import { ApiError } from '@/lib/api';
 import { buildLessonErrorMessage } from '@/lib/contactMessages';
 import { completeLesson, getCourseLessons, type Lesson } from '@/lib/coursesApi';
+import { enqueueOfflineAction, isNetworkError, useOfflineQueue } from '@/lib/offlineQueue';
 import { isValidRecordId } from '@/lib/routeParams';
 
 // Chargé à la demande : react-native-youtube-iframe (WebView) ne doit être
@@ -66,6 +67,8 @@ export default function LessonScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState<number | null>(null);
   const [completeError, setCompleteError] = useState<string | null>(null);
+  const { pending } = useOfflineQueue();
+  const isPendingOffline = pending.some((a) => a.kind === 'lesson' && a.lessonId === lessonId);
 
   const load = useCallback(async () => {
     if (!token || !courseId) return;
@@ -95,6 +98,13 @@ export default function LessonScreen() {
       setPointsAwarded(result.points_awarded);
       router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } });
     } catch (err) {
+      if (isNetworkError(err)) {
+        // Hors-ligne : gardée sur l'appareil, envoyée au retour du réseau
+        // (voir offlineQueue.ts) — le cours la compte déjà comme terminée.
+        await enqueueOfflineAction({ kind: 'lesson', courseId, lessonId, createdAt: Date.now() });
+        router.replace({ pathname: '/(tabs)/academy/[courseId]', params: { courseId } });
+        return;
+      }
       setCompleteError(
         err instanceof ApiError ? err.message : "Impossible d'enregistrer votre progression pour le moment.",
       );
@@ -185,10 +195,16 @@ export default function LessonScreen() {
       ) : null}
 
       <PrimaryButton
-        label={lesson.completed ? 'Leçon déjà terminée' : "J'ai compris"}
+        label={
+          lesson.completed
+            ? 'Leçon déjà terminée'
+            : isPendingOffline
+              ? 'Enregistrée — envoi au retour du réseau'
+              : "J'ai compris"
+        }
         onPress={handleUnderstood}
         loading={isSubmitting}
-        disabled={lesson.completed || isSubmitting}
+        disabled={lesson.completed || isPendingOffline || isSubmitting}
         variant="success"
         style={styles.spaced}
       />
