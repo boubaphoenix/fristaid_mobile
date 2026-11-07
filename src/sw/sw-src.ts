@@ -6,7 +6,7 @@ import { BackgroundSyncPlugin } from 'workbox-background-sync';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing';
-import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -15,10 +15,12 @@ declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 
 // --- Lecture : contenu des cours (texte/JSON), déjà ouvert = reste lisible
-// hors-ligne, revalidé en tâche de fond au retour réseau.
+// hors-ligne. Réseau d'abord, pas StaleWhileRevalidate : ces réponses
+// contiennent la progression (leçons cochées, quiz débloqué) et l'ancienne
+// copie affichée d'abord gardait le quiz verrouillé après une leçon terminée.
 registerRoute(
   ({ url }) => /\/courses(\/|$)|\/lessons(\/|$)/.test(url.pathname),
-  new StaleWhileRevalidate({ cacheName: 'course-content-v1' }),
+  new NetworkFirst({ cacheName: 'course-content-v1', networkTimeoutSeconds: 4 }),
 );
 
 // --- Images (peu importe l'hébergeur — Cloudinary ou autre) : gardées
