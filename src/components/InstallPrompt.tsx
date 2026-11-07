@@ -14,8 +14,9 @@ type Props = {
   // "settings" : rangée permanente dans Profil, toujours visible tant que
   // l'app n'est pas installée. "banner" : affiché une seule fois par
   // l'écran appelant (ex. après un premier cours terminé), avec un bouton
-  // pour l'ignorer durablement.
-  variant: 'settings' | 'banner';
+  // pour l'ignorer durablement. "welcome" : carte blanche sur les écrans
+  // d'avant connexion (fond forêt), pour qui arrive par le lien ou le QR code.
+  variant: 'settings' | 'banner' | 'welcome';
 };
 
 // Toute cette logique n'a de sens que sur web (PWA) — le natif a déjà sa
@@ -28,10 +29,14 @@ export function InstallPrompt({ variant }: Props) {
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [dismissed, setDismissed] = useState(variant === 'banner');
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [help, setHelp] = useState<string | null>(null);
+  // Faux pendant le rendu statique et la 1re hydratation : évite d'afficher
+  // la carte une fraction de seconde dans l'app déjà installée.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    setReady(true);
 
     setIsStandalone(
       window.matchMedia?.('(display-mode: standalone)').matches === true ||
@@ -53,10 +58,7 @@ export function InstallPrompt({ variant }: Props) {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, [variant]);
 
-  if (Platform.OS !== 'web' || isStandalone || dismissed) return null;
-  // Rien à proposer : ni invite Chrome captée, ni iOS (seule plateforme
-  // sans beforeinstallprompt mais avec un chemin d'installation manuel).
-  if (!deferredPrompt && !isIos) return null;
+  if (Platform.OS !== 'web' || !ready || isStandalone || dismissed) return null;
 
   async function handleInstallPress() {
     if (deferredPrompt) {
@@ -65,9 +67,14 @@ export function InstallPrompt({ variant }: Props) {
       setDeferredPrompt(null);
       return;
     }
-    // iOS Safari n'expose aucune API d'installation — la seule voie est le
-    // geste manuel Partager → Sur l'écran d'accueil, qu'on explique ici.
-    setShowIosHelp(true);
+    // Pas d'invite automatique : iOS (jamais), Samsung Internet, Firefox,
+    // navigateur intégré de WhatsApp/Facebook, ou Chrome pas encore prêt.
+    // On explique le geste manuel.
+    setHelp(
+      isIos
+        ? "Appuyez sur le bouton Partager de Safari, puis « Sur l'écran d'accueil »."
+        : "Ouvrez le menu du navigateur (les trois points en haut à droite), puis « Installer l'application » ou « Ajouter à l'écran d'accueil ». Si vous êtes dans WhatsApp ou Facebook, ouvrez d'abord ce lien dans Chrome.",
+    );
   }
 
   function handleDismiss() {
@@ -78,7 +85,12 @@ export function InstallPrompt({ variant }: Props) {
   }
 
   return (
-    <View style={[styles.container, variant === 'banner' && styles.bannerContainer]}>
+    <View
+      style={[
+        styles.container,
+        variant === 'banner' && styles.bannerContainer,
+        variant === 'welcome' && styles.welcomeContainer,
+      ]}>
       <Pressable accessibilityRole="button" onPress={handleInstallPress} style={styles.row}>
         <View style={styles.textBlock}>
           <Text style={typography.bodyBold}>Installer AfricaSecours</Text>
@@ -92,11 +104,7 @@ export function InstallPrompt({ variant }: Props) {
           <Text style={[typography.caption, styles.dismiss]}>Ne plus afficher</Text>
         </Pressable>
       ) : null}
-      {showIosHelp ? (
-        <Text style={[typography.caption, styles.muted, styles.iosHelp]}>
-          Appuyez sur le bouton Partager de Safari, puis « Sur l'écran d'accueil ».
-        </Text>
-      ) : null}
+      {help ? <Text style={[typography.caption, styles.muted, styles.iosHelp]}>{help}</Text> : null}
     </View>
   );
 }
@@ -113,6 +121,12 @@ const styles = StyleSheet.create({
   bannerContainer: {
     backgroundColor: colors.trustBg,
     borderColor: colors.trustBlue,
+  },
+  welcomeContainer: {
+    width: '100%',
+    marginTop: 0,
+    backgroundColor: colors.white,
+    borderColor: colors.white,
   },
   row: {
     minHeight: 56,

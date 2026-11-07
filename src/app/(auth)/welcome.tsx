@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { LogoLockup, PrimaryButton } from '@/components/ui';
 import { brand, colors, spacing, typography } from '@/constants/theme';
 import { markOnboardingSeen } from '@/lib/onboardingStorage';
@@ -22,6 +23,7 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.actions}>
+          <InstallPrompt variant="welcome" />
           <PrimaryButton
             label="Commencer"
             variant="brand"

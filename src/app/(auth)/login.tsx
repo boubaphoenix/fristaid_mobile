@@ -2,6 +2,7 @@ import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { GoogleButton, LogoMark, OutlineButton, PrimaryButton, Screen, TextField } from '@/components/ui';
 import { colors, spacing, typography } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -70,6 +71,7 @@ export default function LoginScreen() {
       <View style={styles.logoHeader}>
         <LogoMark size={48} />
       </View>
+      <InstallPrompt variant="settings" />
       <Text style={[typography.h2, styles.spaced]}>Connexion</Text>
       {showSessionExpiredBanner ? (
         <Text style={[typography.small, styles.sessionExpiredBanner, styles.spaced]}>
